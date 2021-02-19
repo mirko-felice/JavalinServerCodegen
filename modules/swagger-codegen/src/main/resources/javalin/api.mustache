@@ -1,0 +1,14 @@
+package {{package}};
+
+import io.javalin.Javalin;
+
+public class {{classname}} {
+
+    public void registerRoutes(Javalin server) {
+    {{#operations}}
+    {{#operation}}
+        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}("{{path}}", null);
+    {{/operation}}
+    {{/operations}}
+    }
+}

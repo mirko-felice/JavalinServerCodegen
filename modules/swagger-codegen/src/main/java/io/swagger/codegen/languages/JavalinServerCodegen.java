@@ -4,6 +4,7 @@ import io.swagger.codegen.CodegenConfig;
 import io.swagger.codegen.CodegenType;
 import io.swagger.codegen.DefaultCodegen;
 import io.swagger.codegen.SupportingFile;
+import io.swagger.codegen.mustache.LowercaseLambda;
 
 import java.io.File;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         supportsInheritance = true;
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
-        //apiTemplateFiles.put("api.mustache", ".java");
+        apiTemplateFiles.put("api.mustache", ".java");
         setReservedWordsLowerCase(
                 Arrays.asList(
                         "abstract", "continue", "for", "new", "switch", "assert",
@@ -65,11 +66,35 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     public void processOpts() {
         super.processOpts();
         importMapping.put("Javalin", "io.javalin.Javalin");
+        additionalProperties.put("lowercase", new LowercaseLambda());
+    }
+
+    @Override
+    public String apiPackage() {
+        return "api";
     }
 
     @Override
     public String apiFileFolder() {
         return outputFolder + "/" + sourceFolder + "/" + apiPackage().replace('.', '/');
+    }
+
+    @Override
+    public String toApiName(String name) {
+        if (name.length() == 0) {
+            return "DefaultApi";
+        }
+        return camelize(name) + "API";
+    }
+
+    @Override
+    public String toApiFilename(String name) {
+        return toApiName(name);
+    }
+
+    @Override
+    public String toApiVarName(String name) {
+        return snakeCase(name) + "API";
     }
 
     @Override
@@ -115,6 +140,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
     public String escapeUnsafeCharacters(String input) {
         return input.replace("*/", "*_/").replace("/*", "/_*");
+    }
+
+    @Override
+    public String escapeQuotationMark(String input) {
+        // remove " to avoid code injection
+        return input.replace("\"", "");
     }
 
     @Override

@@ -1,9 +1,15 @@
 import io.javalin.Javalin;
+{{#apiInfo}}{{#apis}}
+import api.{{classname}};
+{{/apis}}
+{{/apiInfo}}
 
 public class Main {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().start({{server_port}});
-
+        Javalin server = Javalin.create().start({{server_port}});
+        {{#apiInfo}}{{#apis}}{{classname}} {{classVarName}} = new {{classname}}();
+        {{classVarName}}.registerRoutes(server);
+        {{/apis}}
+        {{/apiInfo}}
     }
-
 }
