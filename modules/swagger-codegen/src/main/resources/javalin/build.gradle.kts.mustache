@@ -1,0 +1,19 @@
+plugins {
+    java
+    application
+}
+
+application {
+    mainClassName = "Main"
+}
+
+repositories {
+    mavenCentral()
+}
+
+group = "sd.lab"
+version = "1.0.0"
+
+dependencies {
+    implementation ("io.javalin", "javalin", "3.13.3")
+}

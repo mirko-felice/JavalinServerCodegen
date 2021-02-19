@@ -1,0 +1,187 @@
+swagger: "2.0"
+info:
+  version: "2"
+  title: Linda Web Service
+
+  description: |
+    - The Linda-WS application consists of an HTTP service functioning a central hub for multiple clients willing to interact through LINDA tuple spaces
+
+    - Clients may interact through Linda-WS by issuing LINDA operations in the form of HTTP methods invocations directed towards the _**textual** spaces_ wrapped by Linda-WS. In particular:
+      + tuple spaces are referenced through URLs in the form `/linda/v2/tuple-spaces/{tupleSpaceName}`
+      + tuples are JSON in the form `{ "tuple": "<string tuple>"}`
+      + templates are query parameters in the form `template=`_`urlEncode(`_`{ "template": "<regex template>"}`_`)`_
+      + primitives are mapped into HTTP methods as follows:
+        * `rd` -> `GET`
+        * `out` -> `POST`
+        * `in` -> `DELETE`
+        * `get` -> `GET`
+        * `count` -> `GET`
+
+host: localhost:8080
+basePath: /linda/v2
+
+paths:
+
+  /tuple-spaces:
+    get:
+      parameters: &BulkParameters
+        - &BulkSkipParameter
+          in: query
+          name: skip
+          type: integer
+          required: false
+          default: "0"
+          description: Optional parameter stating the amount of sub-resources to be skipped in a bulk query. Defaults to 0
+        - &BulkLimitParameter
+          in: query
+          name: limit
+          type: integer
+          required: false
+          default: "10"
+          description: Optional parameter stating the maximum amount of sub-resources to be returned by a bulk query. Defaults to 10
+        - &BulkFilterParameter
+          in: query
+          name: filter
+          type: string
+          required: false
+          default: "<empty string>"
+          description: Optional parameter constraining the bulk query to return only those sub-resources whose representation contains this value. Defaults to the empty string
+
+      tags:
+        - tuple spaces
+      summary: Get the names of all the currently instantiated tuple spaces
+      description: >
+        Retrieve all the names to all tuple spaces
+      operationId: getTupleSpaces
+      produces:
+        - application/json
+      schemes:
+        - http
+      responses:
+        200:
+          description: >
+            Success.
+          schema:
+            $ref: "#/definitions/ListOfNames"
+        400: &Response400
+          description: Bad request. The provided `skip` and/or `limit` parameters are not valid integers
+
+  /tuple-spaces/{tupleSpaceName}:
+    parameters:
+      - in: path
+        name: tupleSpaceName
+        required: true
+        type: string
+        description: The name of the textual space upon which the method will operate
+
+
+    get:
+      parameters:
+        - in: query
+          name: count
+          type: boolean
+          required: false
+          default: false
+          description: States whether this method should behave as the `count` primitive or not
+        - in: query
+          name: template
+          type: string
+          required: false
+          description: States whether this method should behave as the `rd` primitive (if present) or not, and, in that case it carries an [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding) JSON object wrapping a regex template
+      tags:
+        - tuple spaces
+      summary: Get or count tuples from the tuple space
+      description: |
+        Get or count tuples from the tuple space. The actual behaviour depends on the provided paramenters:
+        - the presence of the `count` parameter makes this method behave as the `count` primitive, assuming the value of the parameter is `true`
+        - if the `count` parameter is absent or `false`, the presence of the `template` parameter makes this method behave as the `rd` primitive
+        - if the `count` parameter is absent or `false`, and the `template` parameter is absent, then this method behave as the `get` primitive
+
+        Notice that in case of `rd`-like behaviour, the operation is suspensive, meaning that the reponse from the server will be produced only after one tuple matching the behaviour is available on the tuple space. In any other case, the server response will be produced ASAP
+      operationId: getTuple
+      produces:
+        - application/json
+      schemes:
+        - http
+      responses:
+        200:
+          description: >
+            Success.
+
+            The result is an object whose type is one of {  [`Tuple`](#/definitions/Tuple), [`ListOfTuples`](#/definitions/ListOfTuples), [`Number`](#/definitions/Number) }, depending on the parameters combination of choice
+          schema:
+            type: object
+            description: "One of {  [`Tuple`](#/definitions/Tuple), [`ListOfTuples`](#/definitions/ListOfTuples), [`Number`](#/definitions/Number) } "
+        400:
+          description: Some parameter is not well formed
+    post:
+      summary: Insert a tuple into the tuple space
+      description: Performs an `out` operation over the tuple provided within the request body
+      tags:
+        - tuple spaces
+      parameters:
+        - in: body
+          name: tuple
+          required: true
+
+          schema:
+            $ref: '#/definitions/Tuple'
+      operationId: postTuple
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      responses:
+        200:
+          description: OK, tuple inserted. The inserted tuple is returned
+          schema:
+            $ref: '#/definitions/Tuple'
+        400:
+          description: Some parameter is not well formed
+    delete:
+      summary: Consumes tuples from the tuple space
+      description: Performs an `in` operation over the template provided within URL query
+      parameters:
+        - in: query
+          name: template
+          type: string
+          required: true
+          description: >
+            [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding) regex template
+      operationId: deleteTuple
+      produces:
+        - application/json
+      tags:
+        - tuple spaces
+      responses:
+        200:
+          description: >
+            OK, the tuple has been consumed. The consumed tuple is returned
+          schema:
+            $ref: '#/definitions/Tuple'
+        400:
+          description: Some parameter is not well formed or missing
+definitions:
+  Name:
+    type: string
+  ListOfNames:
+    type: array
+    items:
+      $ref: '#/definitions/Name'
+  Number:
+    type: number
+  Tuple:
+    type: object
+    properties:
+      tuple:
+        type: string
+  Template:
+    type: object
+    properties:
+      template:
+        type: string
+        format: regex
+  ListOfTuples:
+    type: array
+    items:
+      $ref: '#/definitions/Tuple'

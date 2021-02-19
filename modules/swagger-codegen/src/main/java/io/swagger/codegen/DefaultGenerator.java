@@ -3,7 +3,7 @@ package io.swagger.codegen;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 import io.swagger.codegen.ignore.CodegenIgnoreProcessor;
-import io.swagger.codegen.languages.AbstractJavaCodegen;
+//import io.swagger.codegen.languages.AbstractJavaCodegen;
 import io.swagger.codegen.utils.ImplementationVersion;
 import io.swagger.models.*;
 import io.swagger.models.auth.OAuth2Definition;
