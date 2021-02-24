@@ -1,15 +1,19 @@
 import io.javalin.Javalin;
-{{#apiInfo}}{{#apis}}
-import api.{{classname}};
+{{#apiInfo}}{{#apis}}import {{apiPackage}}.{{classname}};
 {{/apis}}
 {{/apiInfo}}
 
 public class Main {
     public static void main(String[] args) {
-        Javalin server = Javalin.create().start({{server_port}});
-        {{#apiInfo}}{{#apis}}{{classname}} {{classVarName}} = new {{classname}}();
+        String host = "{{host}}".split(":")[0];
+        int port = 7000;
+        if ("{{host}}".contains(":"))
+            port = Integer.parseInt("{{host}}".split(":")[1]);
+        Javalin server = Javalin.create().start(host, port);
+
+        {{#apiInfo}}{{#apis}}{{classname}} {{classVarName}} = new {{classname}}("{{basePathWithoutHost}}");
         {{classVarName}}.registerRoutes(server);
-        {{/apis}}
-        {{/apiInfo}}
+
+        {{/apis}}{{/apiInfo}}
     }
 }

@@ -1,20 +1,22 @@
 package io.swagger.codegen.languages;
 
-import io.swagger.codegen.CodegenConfig;
-import io.swagger.codegen.CodegenType;
-import io.swagger.codegen.DefaultCodegen;
-import io.swagger.codegen.SupportingFile;
+import io.swagger.codegen.*;
 import io.swagger.codegen.mustache.LowercaseLambda;
+import io.swagger.models.Model;
+import io.swagger.models.Operation;
+import io.swagger.models.Swagger;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfig {
 
     protected String projectFolder = "src" + File.separator + "main";
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
+    protected String testFolder = "src" + File.separator + "test" + File.separator + "java";
 
     public JavalinServerCodegen(){
         super();
@@ -22,6 +24,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
         apiTemplateFiles.put("api.mustache", ".java");
+        apiTestTemplateFiles.put("api_test.mustache", ".java");
+        apiPackage = "api";
         setReservedWordsLowerCase(
                 Arrays.asList(
                         "abstract", "continue", "for", "new", "switch", "assert",
@@ -44,10 +48,17 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                         "Object",
                         "byte[]")
         );
+        defaultIncludes.addAll(Arrays.asList(
+                "string",
+                "integer",
+                "object"));
         instantiationTypes.put("array", "ArrayList");
         instantiationTypes.put("map", "HashMap");
         typeMapping.put("date", "Date");
         typeMapping.put("file", "File");
+        typeMapping.put("integer", "int");
+        typeMapping.put("string", "String");
+        typeMapping.put("object", "Object");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -66,17 +77,19 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     public void processOpts() {
         super.processOpts();
         importMapping.put("Javalin", "io.javalin.Javalin");
+        importMapping.put("List", "java.util.List");
+        importMapping.put("File", "java.io.File");
         additionalProperties.put("lowercase", new LowercaseLambda());
-    }
-
-    @Override
-    public String apiPackage() {
-        return "api";
     }
 
     @Override
     public String apiFileFolder() {
         return outputFolder + "/" + sourceFolder + "/" + apiPackage().replace('.', '/');
+    }
+
+    @Override
+    public String apiTestFileFolder() {
+        return outputFolder + "/" + testFolder + "/" + apiPackage().replace('.', '/');
     }
 
     @Override
@@ -160,6 +173,14 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
     @Override
     public String getHelp() {
-        return "non ti possiamo aiutare";
+        return "Generates a Javalin Server library.";
+    }
+
+    @Override
+    public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
+        CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
+        codegenOperation.imports.add("List");
+        codegenOperation.imports.add("Javalin");
+        return codegenOperation;
     }
 }

@@ -1,14 +1,41 @@
 package {{package}};
 
+{{#imports}}//import {{import}};
+{{/imports}}
 import io.javalin.Javalin;
+import io.javalin.http.Context;
+import java.util.*;
 
 public class {{classname}} {
+
+    private final String basePath;
+
+    public {{classname}}(final String basePath) {
+        this.basePath = Objects.requireNonNull(basePath);
+    }
 
     public void registerRoutes(Javalin server) {
     {{#operations}}
     {{#operation}}
-        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}("{{path}}", null);
+        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}(this.basePath + "{{path}}".replace("{",":").replace("}",""), this::{{operationId}});
     {{/operation}}
     {{/operations}}
     }
+
+    {{#operations}}{{#operation}}
+    public void {{operationId}}(Context context) {
+        // Query params
+        {{#queryParams}}
+        {{dataType}} {{baseName}} = context.queryParam("{{baseName}}", {{dataType}}.class).get();
+        {{/queryParams}}
+        context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
+        {{#responses}}
+        {{#schema}}
+        //context.result(new CompletableFuture<{{dataType}}>());
+        {{/schema}}
+        {{/responses}}
+    }
+
+    {{/operation}}
+    {{/operations}}
 }

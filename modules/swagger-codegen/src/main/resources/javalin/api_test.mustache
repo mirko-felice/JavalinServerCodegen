@@ -1,0 +1,37 @@
+package {{package}};
+
+//import {{invokerPackage}}.ApiException;
+{{#imports}}//import {{import}};
+{{/imports}}
+import org.junit.Test;
+import org.junit.Ignore;
+import java.net.http.*;
+
+/**
+* API tests for {{classname}}
+*/
+public class {{classname}}Test {
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final String basePath = "{{basePathwithoutHost}}";
+    private final {{classname}} api = new {{classname}}();
+
+{{#operations}}{{#operation}}
+    /**
+    * {{summary}}
+    *
+    * {{notes}}
+    *
+    * @throws ApiException
+    *          if the Api call fails
+    */
+    @Test
+    public void {{operationId}}Test() throws Exception {
+    {{#allParams}}
+        {{{dataType}}} {{paramName}} = null;
+    {{/allParams}}
+    {{#returnType}}{{{returnType}}} response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
+    // TODO: test validations
+    }
+{{/operation}}{{/operations}}
+}
