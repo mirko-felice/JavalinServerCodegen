@@ -25,7 +25,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
         apiTemplateFiles.put("api.mustache", ".java");
-        apiTestTemplateFiles.put("api_test.mustache", ".java");
+        //apiTestTemplateFiles.put("api_test.mustache", ".java");
         apiPackage = "api";
         setReservedWordsLowerCase(
                 Arrays.asList(
@@ -80,7 +80,11 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         super.processOpts();
         importMapping.put("Javalin", "io.javalin.Javalin");
         importMapping.put("List", "java.util.List");
+        importMapping.put("ArrayList", "java.util.ArrayList");
+        importMapping.put("Map", "java.util.Map");
+        importMapping.put("HashMap", "java.util.HashMap");
         importMapping.put("File", "java.io.File");
+        importMapping.put("Objects", "java.util.Objects");
         //importMapping.put("Deprecated", "");
         additionalProperties.put("lowercase", new LowercaseLambda());
     }
@@ -182,8 +186,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
-        codegenOperation.imports.add("List");
         codegenOperation.imports.add("Javalin");
+        codegenOperation.imports.add("Objects");
+        if (codegenOperation.allParams.stream().anyMatch(p -> p.isListContainer))
+            codegenOperation.imports.add("List");
+        if (codegenOperation.allParams.stream().anyMatch(p -> p.isFile))
+            codegenOperation.imports.add("File");
         //if (codegenOperation.isDeprecated)
         //    codegenOperation.imports.add("Deprecated");
         return codegenOperation;
@@ -192,6 +200,10 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public CodegenModel fromModel(String name, Model model, Map<String, Model> allDefinitions) {
         CodegenModel codegenModel = super.fromModel(name, model, allDefinitions);
+        if ((codegenModel.isArrayModel && codegenModel.parentContainer.isListContainer) || codegenModel.vars.stream().anyMatch(p -> p.isListContainer))
+            codegenModel.imports.addAll(Arrays.asList("List", "ArrayList"));
+        if ((codegenModel.isArrayModel && codegenModel.parentContainer.isMapContainer) || codegenModel.vars.stream().anyMatch(p -> p.isMapContainer))
+            codegenModel.imports.addAll(Arrays.asList("Map", "HashMap"));
         return codegenModel;
     }
 

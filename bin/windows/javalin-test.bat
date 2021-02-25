@@ -1,4 +1,4 @@
-set JAVA_OPTS=-DdebugModels
+set JAVA_OPTS=-DdebugOperations
 
 set executable=.\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar
 
@@ -12,3 +12,7 @@ set ags=generate -i petstore.json -l javalin -o samples\javalin -DdateLibrary=ja
 rmdir /S "samples\"
 
 java %JAVA_OPTS% -jar %executable% %ags%
+
+cd samples\javalin
+
+gradlew run
