@@ -9,7 +9,7 @@ set ags=generate -i linda.yaml -l javalin -o samples\javalin -DdateLibrary=java.
 
 rmdir /S "samples\"
 
-java %JAVA_OPTS% -jar %executable% %ags%
+java %JAVA_OPTS% -DdebugOperations -jar %executable% %ags%
 
 cd samples\javalin
 

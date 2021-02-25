@@ -56,7 +56,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         instantiationTypes.put("map", "HashMap");
         typeMapping.put("date", "Date");
         typeMapping.put("file", "File");
-        typeMapping.put("integer", "int");
         typeMapping.put("string", "String");
         typeMapping.put("object", "Object");
 
@@ -79,6 +78,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("Javalin", "io.javalin.Javalin");
         importMapping.put("List", "java.util.List");
         importMapping.put("File", "java.io.File");
+        //importMapping.put("Deprecated", "");
         additionalProperties.put("lowercase", new LowercaseLambda());
     }
 
@@ -181,6 +181,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
         codegenOperation.imports.add("List");
         codegenOperation.imports.add("Javalin");
+        //if (codegenOperation.isDeprecated)
+        //    codegenOperation.imports.add("Deprecated");
         return codegenOperation;
     }
 }

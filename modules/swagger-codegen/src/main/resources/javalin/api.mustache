@@ -21,13 +21,28 @@ public class {{classname}} {
     {{/operation}}
     {{/operations}}
     }
+    {{#operations}}{{#operation}}{{#isDeprecated}}@Deprecated{{/isDeprecated}}
+    public void {{#operationId}}{{operationId}}{{/operationId}}{{^operationId}}{{#lowercase}}{{httpMethod}}{{/lowercase}}{{path}}{{/operationId}}(Context context) {
+        // Path params
+        {{#pathParams}}
+        {{dataType}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class).get();
+        {{/pathParams}}
 
-    {{#operations}}{{#operation}}
-    public void {{operationId}}(Context context) {
         // Query params
         {{#queryParams}}
-        {{dataType}} {{baseName}} = context.queryParam("{{baseName}}", {{dataType}}.class).get();
+        {{dataType}} {{baseName}} = context.queryParam("{{baseName}}", {{dataType}}.class{{#defaultValue}}, "{{defaultValue}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();
         {{/queryParams}}
+
+        // Form params
+        {{#formParams}}
+        {{dataType}} {{baseName}} = context.formParam("{{baseName}}", {{dataType}}.class{{#defaultValue}}, "{{defaultValue}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();
+        {{/formParams}}
+
+        // Headers
+        {{#headerParams}}
+        {{dataType}} {{baseName}} = context.formParam("{{baseName}}", {{dataType}}.class{{#defaultValue}}, "{{defaultValue}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();
+        {{/headerParams}}
+
         context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
         {{#responses}}
         {{#schema}}
@@ -35,7 +50,6 @@ public class {{classname}} {
         {{/schema}}
         {{/responses}}
     }
-
     {{/operation}}
     {{/operations}}
 }
