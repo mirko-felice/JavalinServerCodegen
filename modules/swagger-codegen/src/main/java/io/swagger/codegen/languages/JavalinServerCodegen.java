@@ -1,8 +1,10 @@
 package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
-import io.swagger.codegen.mustache.CamelCaseLambda;
+import io.swagger.codegen.mustache.LowercaseLambda;
 import io.swagger.models.Model;
+import io.swagger.models.Operation;
+import io.swagger.models.Swagger;
 import io.swagger.models.properties.Property;
 
 import java.io.File;
@@ -22,7 +24,9 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         supportsInheritance = true;
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
-        //apiTemplateFiles.put("api.mustache", ".java");
+        apiTemplateFiles.put("api.mustache", ".java");
+        apiTestTemplateFiles.put("api_test.mustache", ".java");
+        apiPackage = "api";
         setReservedWordsLowerCase(
                 Arrays.asList(
                         "abstract", "continue", "for", "new", "switch", "assert",
@@ -45,15 +49,16 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                         "Object",
                         "byte[]")
         );
+        defaultIncludes.addAll(Arrays.asList(
+                "string",
+                "integer",
+                "object"));
         instantiationTypes.put("array", "ArrayList");
         instantiationTypes.put("map", "HashMap");
-        for (String key: typeMapping.keySet()){
-            System.out.println(key + " : " + typeMapping.get(key));
-        }
         typeMapping.put("date", "Date");
         typeMapping.put("file", "File");
         typeMapping.put("string", "String");
-        //typeMapping.put("number", "Long");
+        typeMapping.put("object", "Object");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
         modelPackage = "model";
@@ -74,12 +79,38 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     public void processOpts() {
         super.processOpts();
         importMapping.put("Javalin", "io.javalin.Javalin");
-        additionalProperties.put("camelcase", new CamelCaseLambda());
+        importMapping.put("List", "java.util.List");
+        importMapping.put("File", "java.io.File");
+        //importMapping.put("Deprecated", "");
+        additionalProperties.put("lowercase", new LowercaseLambda());
     }
 
     @Override
     public String apiFileFolder() {
         return outputFolder + "/" + sourceFolder + "/" + apiPackage().replace('.', '/');
+    }
+
+    @Override
+    public String apiTestFileFolder() {
+        return outputFolder + "/" + testFolder + "/" + apiPackage().replace('.', '/');
+    }
+
+    @Override
+    public String toApiName(String name) {
+        if (name.length() == 0) {
+            return "DefaultApi";
+        }
+        return camelize(name) + "API";
+    }
+
+    @Override
+    public String toApiFilename(String name) {
+        return toApiName(name);
+    }
+
+    @Override
+    public String toApiVarName(String name) {
+        return snakeCase(name) + "API";
     }
 
     @Override
@@ -128,6 +159,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     }
 
     @Override
+    public String escapeQuotationMark(String input) {
+        // remove " to avoid code injection
+        return input.replace("\"", "");
+    }
+
+    @Override
     public CodegenType getTag() {
         return CodegenType.SERVER;
     }
@@ -139,7 +176,17 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
     @Override
     public String getHelp() {
-        return "non ti possiamo aiutare";
+        return "Generates a Javalin Server library.";
+    }
+
+    @Override
+    public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
+        CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
+        codegenOperation.imports.add("List");
+        codegenOperation.imports.add("Javalin");
+        //if (codegenOperation.isDeprecated)
+        //    codegenOperation.imports.add("Deprecated");
+        return codegenOperation;
     }
 
     @Override
