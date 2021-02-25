@@ -1,3 +1,5 @@
+set JAVA_OPTS=-DdebugModels
+
 set executable=.\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar
 
 If Not Exist %executable% (
@@ -5,7 +7,7 @@ If Not Exist %executable% (
 )
 
 REM set JAVA_OPTS=%JAVA_OPTS% -Xmx1024M
-set ags=generate -i test.yaml -l javalin -o samples\javalin -DdateLibrary=java.util.Date -DhideGenerationTimestamp=true
+set ags=generate -i petstore.json -l javalin -o samples\javalin -DdateLibrary=java.util.Date -DhideGenerationTimestamp=true
 
 rmdir /S "samples\"
 

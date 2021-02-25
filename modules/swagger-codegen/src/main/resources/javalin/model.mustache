@@ -1,0 +1,73 @@
+package {{modelPackage}};
+
+{{#imports}}
+import {{import}};
+{{/imports}}
+
+{{#models}}
+    {{#model}}
+public class {{classname}}{
+
+    {{#isAlias}}private {{dataType}} {{classVarName}}{{#defaultValue}} = {{defaultValue}}{{/defaultValue}};
+    {{/isAlias}}{{#vars}}{{^isContainer}}private {{datatype}} {{baseName}}{{#defaultValue}} = {{defaultValue}}{{/defaultValue}};
+    {{/isContainer}}{{/vars}}{{#vars}}{{#isContainer}}private {{datatype}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}> {{baseName}} = new {{#isListContainer}}ArrayList<>{{/isListContainer}}{{#isMapContainer}}HashMap<>{{/isMapContainer}}();
+    {{/isContainer}}{{/vars}}{{#isArrayModel}}private {{#parentContainer}}{{datatype}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}} = new {{{parent}}}();
+    {{/isArrayModel}}
+
+    public {{name}}({{#isAlias}}{{dataType}} {{classVarName}}{{/isAlias}}{{#vars}}{{datatype}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{#isArrayModel}}{{#parentContainer}}{{datatype}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}{{/isArrayModel}}){
+        {{#isAlias}}this.{{classVarName}} = {{classVarName}};
+    }    {{/isAlias}}{{#vars}}this.{{baseName}} = {{baseName}};
+   {{^hasMore}} } {{/hasMore}}     {{/vars}}{{#isArrayModel}}this.{{classVarName}} = {{classVarName}};
+    }    {{/isArrayModel}}
+
+{{#isAlias}}
+    public {{dataType}} get{{classname}}(){
+        return this.{{classVarName}};
+    }
+
+    public void set{{classname}}({{dataType}} {{classVarName}}){
+        this.{{classVarName}} = {{classVarName}};
+    }
+
+{{/isAlias}}
+{{#isArrayModel}}
+    public {{dataType}} get{{classname}}(){
+        return this.{{classVarName}};
+    }
+
+    public void set{{classname}}({{#parentContainer}}{{datatype}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}){
+        this.{{classVarName}} = {{classVarName}};
+    }
+
+{{/isArrayModel}}
+{{#vars}}
+    public {{datatype}} {{getter}}(){
+        return this.{{baseName}};
+    }
+
+    public void {{setter}}({{datatype}} {{baseName}}){
+        this.{{baseName}} = {{baseName}};
+    }
+
+{{/vars}}
+    public String toString(){
+        return {{#vars}}"{{baseName}} : " + {{baseName}}{{^hasMore}};{{/hasMore}}
+            {{#hasMore}} + {{/hasMore}}{{/vars}}{{#isAlias}}"{{classVarName}} : " + {{classVarName}};{{/isAlias}}{{#isArrayModel}}"{{classVarName}} : " + {{classVarName}};{{/isArrayModel}}
+    }
+
+    public boolean equals({{name}} other){
+        return {{#vars}}this.{{baseName}}.equals(other.{{getter}}()){{^hasMore}};{{/hasMore}}
+           {{#hasMore}} && {{/hasMore}}{{/vars}}{{#isAlias}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isAlias}}{{#isArrayModel}}this.{{classVarName}}.equals(other.get{{classVarName}}());{{/isArrayModel}}
+    }
+
+    public int hashCode(){
+        int prime = 19;
+        int result = 31;
+        {{#vars}}result = prime * result + this.{{baseName}}.hashCode();
+        {{/vars}}{{#isAlias}}result = prime * result + this.{{classVarName}}.hashCode();
+        {{/isAlias}}{{#isArrayModel}}result = prime * result + this.{{classVarName}}.hashCode();{{/isArrayModel}}
+        return result;
+    }
+}
+    {{/model}}
+{{/models}}

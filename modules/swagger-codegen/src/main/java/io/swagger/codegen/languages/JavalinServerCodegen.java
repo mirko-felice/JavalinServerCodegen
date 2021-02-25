@@ -1,18 +1,20 @@
 package io.swagger.codegen.languages;
 
-import io.swagger.codegen.CodegenConfig;
-import io.swagger.codegen.CodegenType;
-import io.swagger.codegen.DefaultCodegen;
-import io.swagger.codegen.SupportingFile;
+import io.swagger.codegen.*;
+import io.swagger.codegen.mustache.CamelCaseLambda;
+import io.swagger.models.Model;
+import io.swagger.models.properties.Property;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfig {
 
     protected String projectFolder = "src" + File.separator + "main";
     protected String sourceFolder = projectFolder + File.separator + "java";
+    protected String testFolder = "src" + File.separator + "test" + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
 
     public JavalinServerCodegen(){
@@ -45,10 +47,17 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         );
         instantiationTypes.put("array", "ArrayList");
         instantiationTypes.put("map", "HashMap");
+        for (String key: typeMapping.keySet()){
+            System.out.println(key + " : " + typeMapping.get(key));
+        }
         typeMapping.put("date", "Date");
         typeMapping.put("file", "File");
+        typeMapping.put("string", "String");
+        //typeMapping.put("number", "Long");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
+        modelPackage = "model";
+        modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
         writeOptional(outputFolder, new SupportingFile("build.gradle.kts.mustache", "", "build.gradle.kts"));
         //writeOptional(outputFolder, new SupportingFile("settings.gradle.mustache", "", "settings.gradle"));
@@ -65,6 +74,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     public void processOpts() {
         super.processOpts();
         importMapping.put("Javalin", "io.javalin.Javalin");
+        additionalProperties.put("camelcase", new CamelCaseLambda());
     }
 
     @Override
@@ -130,5 +140,38 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public String getHelp() {
         return "non ti possiamo aiutare";
+    }
+
+    @Override
+    public CodegenModel fromModel(String name, Model model, Map<String, Model> allDefinitions) {
+        CodegenModel codegenModel = super.fromModel(name, model, allDefinitions);
+        return codegenModel;
+    }
+
+    @Override
+    public String modelFileFolder() {
+        return outputFolder + File.separator + sourceFolder + File.separator + modelPackage.replace(".", File.separator);
+    }
+
+    @Override
+    public String modelTestFileFolder() {
+        return outputFolder + File.separator + testFolder + File.separator + modelPackage.replace(".", File.separator);
+    }
+
+    @Override
+    public String getSwaggerType(Property p) {
+        String swaggerType = super.getSwaggerType(p);
+
+        swaggerType = getAlias(swaggerType);
+
+        // don't apply renaming on types from the typeMapping
+        if (typeMapping.containsKey(swaggerType)) {
+            return typeMapping.get(swaggerType);
+        }
+
+        if (null == swaggerType) {
+            LOGGER.error("No Type defined for Property " + p);
+        }
+        return toModelName(swaggerType);
     }
 }
