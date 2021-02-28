@@ -1,37 +1,138 @@
 package {{package}};
 
-//import {{invokerPackage}}.ApiException;
-{{#imports}}//import {{import}};
+import utils.*;
+{{#imports}}import {{import}};
 {{/imports}}
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
+import org.junit.After;
+import java.net.URI;
 import java.net.http.*;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.util.function.Function;
+import java.util.*;
 
 /**
 * API tests for {{classname}}
 */
 public class {{classname}}Test {
     private final HttpClient client = HttpClient.newHttpClient();
-    private final String basePath = "{{basePathwithoutHost}}";
-    private final {{classname}} api = new {{classname}}();
+    private final String basePath = "{{basePathWithoutHost}}";
+    private final {{classname}} api = new {{classname}}(basePath);
+    private Javalin server;
 
+    @Before
+    public void setUp() {
+        server = Javalin.create().start();
+        api.registerRoutes(server);
+    }
+
+    @After
+    public void tearDown() {
+        server.stop();
+    }
 {{#operations}}{{#operation}}
     /**
     * {{summary}}
     *
-    * {{notes}}
+    * {{{notes}}}
     *
     * @throws ApiException
     *          if the Api call fails
     */
     @Test
-    public void {{operationId}}Test() throws Exception {
+    public void {{operationId}}Test() throws ApiException {
     {{#allParams}}
-        {{{dataType}}} {{paramName}} = null;
+    {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
     {{/allParams}}
-    {{#returnType}}{{{returnType}}} response = {{/returnType}}api.{{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    String uri = "http://localhost:7000" + basePath;
+    if ("{{path}}".contains("{"))
+        uri += "{{path}}".replace("{", "?").replace("}", "") + "=test";
+    else
+        uri += "{{path}}";
+    HttpRequest request = null;
+    switch ("{{#uppercase}}{{httpMethod}}{{/uppercase}}") {
+        case "GET":
+            request = HttpRequest.newBuilder()
+                        .uri(URI.create(uri))
+                        .GET()
+                        .build();
+            break;
+        case "POST":
+            request = HttpRequest.newBuilder()
+                        .uri(URI.create(uri))
+                        .POST(BodyPublishers.ofString("test"))
+                        .build();
+            break;
+        case "PUT":
+            request = HttpRequest.newBuilder()
+                        .uri(URI.create(uri))
+                        .PUT(BodyPublishers.ofString("test"))
+                        .build();
+            break;
+        case "DELETE":
+            request = HttpRequest.newBuilder()
+                        .uri(URI.create(uri))
+                        .DELETE()
+                        .build();
+            break;
+        default:
+    }
+    {{#returnType}}CompletableFuture<{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}> response = {{/returnType}}sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
 
     // TODO: test validations
+
     }
 {{/operation}}{{/operations}}
+
+    private CompletableFuture<HttpResponse<String>> sendAsync(HttpRequest request) {
+        return client.sendAsync(request, BodyHandlers.ofString());
+    }
+
+    private String responseChecker(HttpResponse<String> response) {
+        if (response.statusCode() == 200)
+            return response.body();
+        else
+            throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
+    }
+
+    private static <T> Function<String, CompletableFuture<T>> deserializeOne(Class<T> klass) {
+        var deserializer = Presentation.deserializerOf(klass);
+        return toBeDeserialized -> {
+            var promise = new CompletableFuture<T>();
+            try {
+                promise.complete(deserializer.deserialize(toBeDeserialized));
+            } catch (PresentationException e) {
+                promise.completeExceptionally(new RemoteException(e));
+            }
+            return promise;
+        };
+    }
+
+    private static <T> Function<String, CompletableFuture<List<T>>> deserializeMany(Class<T> klass) {
+        var deserializer = Presentation.deserializerOf(klass);
+        return toBeDeserialized -> {
+            var promise = new CompletableFuture<List<T>>();
+            try {
+                promise.complete(deserializer.deserializeMany(toBeDeserialized));
+            } catch (PresentationException e) {
+                promise.completeExceptionally(new RemoteException(e));
+            }
+            return promise;
+        };
+    }
+
+    private static <T> Function<String, CompletableFuture<Map<String,T>>> deserializeMap(Class<T> klass) {
+        var deserializer = Presentation.deserializerOf(klass);
+        return toBeDeserialized -> {
+            var promise = new CompletableFuture<Map<String, T>>();
+            try {
+                promise.complete(deserializer.deserializeMap(toBeDeserialized));
+            } catch (PresentationException e) {
+                promise.completeExceptionally(new RemoteException(e));
+            }
+            return promise;
+        };
+    }
 }

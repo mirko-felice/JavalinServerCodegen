@@ -1,0 +1,12 @@
+package utils;
+
+import java.util.List;
+import java.util.Map;
+
+public interface Deserializer<T> {
+    T deserialize(String string);
+
+    List<T> deserializeMany(String string);
+
+    Map<String, T> deserializeMap(String string);
+}

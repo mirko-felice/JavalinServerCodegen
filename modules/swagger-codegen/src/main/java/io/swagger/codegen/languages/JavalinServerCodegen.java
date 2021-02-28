@@ -2,22 +2,27 @@ package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
 import io.swagger.codegen.mustache.LowercaseLambda;
+import io.swagger.codegen.mustache.UppercaseLambda;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
 import io.swagger.models.Swagger;
+import io.swagger.models.properties.MapProperty;
 import io.swagger.models.properties.Property;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfig {
 
     protected String projectFolder = "src" + File.separator + "main";
+    protected String projectTestFolder = "src" + File.separator + "test";
     protected String sourceFolder = projectFolder + File.separator + "java";
-    protected String testFolder = "src" + File.separator + "test" + File.separator + "java";
+    protected String testFolder = projectTestFolder + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
+    private String utilsFolder = sourceFolder + File.separator + "utils";
 
     public JavalinServerCodegen(){
         super();
@@ -25,7 +30,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
         apiTemplateFiles.put("api.mustache", ".java");
-        //apiTestTemplateFiles.put("api_test.mustache", ".java");
+        apiTestTemplateFiles.put("api_test.mustache", ".java");
         apiPackage = "api";
         setReservedWordsLowerCase(
                 Arrays.asList(
@@ -61,6 +66,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         typeMapping.put("object", "Object");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
+        supportingFiles.add(new SupportingFile("apiException.mustache", utilsFolder, "ApiException.java"));
+        supportingFiles.add(new SupportingFile("remoteException.mustache", utilsFolder, "RemoteException.java"));
+        supportingFiles.add(new SupportingFile("presentationException.mustache", utilsFolder, "PresentationException.java"));
+        supportingFiles.add(new SupportingFile("presentation.mustache", utilsFolder, "Presentation.java"));
+        supportingFiles.add(new SupportingFile("serializer.mustache", utilsFolder, "Serializer.java"));
+        supportingFiles.add(new SupportingFile("deserializer.mustache", utilsFolder, "Deserializer.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -85,8 +96,10 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("HashMap", "java.util.HashMap");
         importMapping.put("File", "java.io.File");
         importMapping.put("Objects", "java.util.Objects");
+        importMapping.put("CompletableFuture", "java.util.concurrent.CompletableFuture");
         //importMapping.put("Deprecated", "");
         additionalProperties.put("lowercase", new LowercaseLambda());
+        additionalProperties.put("uppercase", new UppercaseLambda());
     }
 
     @Override
@@ -192,6 +205,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             codegenOperation.imports.add("List");
         if (codegenOperation.allParams.stream().anyMatch(p -> p.isFile))
             codegenOperation.imports.add("File");
+        if (!codegenOperation.responses.isEmpty())
+            codegenOperation.imports.add("CompletableFuture");
         //if (codegenOperation.isDeprecated)
         //    codegenOperation.imports.add("Deprecated");
         return codegenOperation;
@@ -218,6 +233,11 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     }
 
     @Override
+    public String toApiTestFilename(String name) {
+        return toApiFilename(name) + "Test";
+    }
+
+    @Override
     public String getSwaggerType(Property p) {
         String swaggerType = super.getSwaggerType(p);
 
@@ -232,5 +252,19 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             LOGGER.error("No Type defined for Property " + p);
         }
         return toModelName(swaggerType);
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
+        super.postProcessOperations(objs);
+        Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+        if (operations != null) {
+            List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+            for (CodegenOperation operation : ops)
+                for (CodegenResponse response: operation.responses)
+                    if (response.isMapContainer)
+                        response.baseType = typeMapping.get(((MapProperty)response.schema).getAdditionalProperties().getType());
+        }
+        return operations;
     }
 }
