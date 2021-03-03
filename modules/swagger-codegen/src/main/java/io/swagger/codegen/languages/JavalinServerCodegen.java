@@ -22,7 +22,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String testFolder = projectTestFolder + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
-    private String utilsFolder = sourceFolder + File.separator + "utils";
 
     public JavalinServerCodegen(){
         super();
@@ -42,7 +41,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                         "void", "class", "finally", "long", "strictfp", "volatile", "const", "float", "list",
                         "native", "super", "while", "null")
         );
-        languageSpecificPrimitives = new HashSet<String>(
+        languageSpecificPrimitives = new HashSet<>(
                 Arrays.asList(
                         "String",
                         "boolean",
@@ -66,12 +65,14 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         typeMapping.put("object", "Object");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
+        String utilsFolder = sourceFolder + File.separator + "utils";
         supportingFiles.add(new SupportingFile("apiException.mustache", utilsFolder, "ApiException.java"));
         supportingFiles.add(new SupportingFile("remoteException.mustache", utilsFolder, "RemoteException.java"));
         supportingFiles.add(new SupportingFile("presentationException.mustache", utilsFolder, "PresentationException.java"));
         supportingFiles.add(new SupportingFile("presentation.mustache", utilsFolder, "Presentation.java"));
         supportingFiles.add(new SupportingFile("serializer.mustache", utilsFolder, "Serializer.java"));
         supportingFiles.add(new SupportingFile("deserializer.mustache", utilsFolder, "Deserializer.java"));
+        supportingFiles.add(new SupportingFile("wrongExecutionSequenceException.mustache", utilsFolder, "WrongExecutionSequenceException.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -117,12 +118,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         if (name.length() == 0) {
             return "DefaultApi";
         }
-        return camelize(name) + "API";
+        return camelize(name);
     }
 
     @Override
     public String toApiFilename(String name) {
-        return toApiName(name);
+        return toApiName(name) + "API";
     }
 
     @Override
@@ -207,8 +208,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             codegenOperation.imports.add("File");
         if (!codegenOperation.responses.isEmpty())
             codegenOperation.imports.add("CompletableFuture");
-        //if (codegenOperation.isDeprecated)
-        //    codegenOperation.imports.add("Deprecated");
         return codegenOperation;
     }
 

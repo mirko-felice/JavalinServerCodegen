@@ -1,8 +1,6 @@
 import io.javalin.Javalin;
-{{#apiInfo}}{{#apis}}
-import {{apiPackage}}.{{classname}};
-{{/apis}}
-{{/apiInfo}}
+{{#apiInfo}}{{#apis}}import {{apiPackage}}.{{classFilename}};
+{{/apis}}{{/apiInfo}}
 
 public class Main {
     public static void main(String[] args) {
@@ -12,7 +10,7 @@ public class Main {
             port = Integer.parseInt("{{host}}".split(":")[1]);
         Javalin server = Javalin.create().start(host, port);
 
-        {{#apiInfo}}{{#apis}}{{classname}} {{classVarName}} = new {{classname}}("{{basePathWithoutHost}}");
+        {{#apiInfo}}{{#apis}}{{classFilename}} {{classVarName}} = new {{classFilename}}("{{basePathWithoutHost}}");
         {{classVarName}}.registerRoutes(server);
 
         {{/apis}}{{/apiInfo}}

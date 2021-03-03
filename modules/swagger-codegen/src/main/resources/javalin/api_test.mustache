@@ -14,12 +14,12 @@ import java.util.function.Function;
 import java.util.*;
 
 /**
-* API tests for {{classname}}
+* API tests for {{classname}}API
 */
-public class {{classname}}Test {
+public class {{classname}}APITest {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String basePath = "{{basePathWithoutHost}}";
-    private final {{classname}} api = new {{classname}}(basePath);
+    private final {{classname}}API api = new {{classname}}API(basePath);
     private Javalin server;
 
     @Before

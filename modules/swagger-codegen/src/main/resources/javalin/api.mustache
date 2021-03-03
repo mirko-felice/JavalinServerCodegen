@@ -5,45 +5,81 @@ package {{package}};
 import io.javalin.http.Context;
 import io.javalin.core.validation.JavalinValidation;
 import java.util.Collections;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.UploadedFile;
+import io.javalin.core.util.FileUtil;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import io.javalin.plugin.json.JavalinJson;
+import java.util.ArrayList;
+import utils.WrongExecutionSequenceException;
+{{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}//import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
 
-public class {{classname}} {
+public class {{classname}}API {
 
     private final String basePath;
     private int code;
     private boolean isCodeSet = false;
 
-    public {{classname}}(final String basePath) {
+    public {{classname}}API(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
     }
 
     public void registerRoutes(Javalin server) {
     {{#operations}}
     {{#operation}}
-        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}(this.basePath + "{{path}}".replace("{",":").replace("}",""), this::{{operationId}});
+        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}(this.basePath + "{{path}}".replace("{",":").replace("}",""), this::{{operationId}});{{#isDeprecated}} // TODO endpoint should be deleted.{{/isDeprecated}}
     {{/operation}}
     {{/operations}}
     }
-    {{#operations}}{{#operation}}   {{#isDeprecated}}@Deprecated{{/isDeprecated}}
+    {{#operations}}{{#operation}}
+    /**
+    * {{{summary}}}
+    *
+    * {{{notes}}}
+    */{{#isDeprecated}}
+    @Deprecated{{/isDeprecated}}
     public void {{#operationId}}{{operationId}}{{/operationId}}{{^operationId}}{{#lowercase}}{{httpMethod}}{{/lowercase}}{{path}}{{/operationId}}(Context context) throws WrongExecutionSequenceException {
+        {{#allParams}}{{#isFile}}final String {{baseName}}Path = ""; // TODO set uploadFilePath{{/isFile}}{{/allParams}}
+        {{#hasConsumes}}// Check request content type
+        String contentType = Objects.requireNonNull(context.contentType());
+        if ({{#consumes}}!contentType.contains("{{mediaType}}"){{#hasMore}} || {{/hasMore}}{{/consumes}})
+            throw new BadRequestResponse();{{/hasConsumes}}
         // Path params
         {{#pathParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class).get();
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get();
         {{/pathParams}}
 
         // Query params
         {{#queryParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.queryParam{{#isListContainer}}s{{/isListContainer}}("{{baseName}}"{{#isListContainer}});{{/isListContainer}}{{^isListContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();{{/isListContainer}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.queryParam{{#isListContainer}}s{{/isListContainer}}("{{baseName}}"{{#isListContainer}});{{/isListContainer}}{{^isListContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isListContainer}}
+        {{#isEnum}}/*List<{{enumName}}> {{#lowercase}}{{enumName}}{{/lowercase}}list = new ArrayList<>();
+        for ({{baseType}} value : {{baseName}})
+            {{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue(value));
+        {{#defaultValue}}{{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue({{defaultValue}}));{{/defaultValue}}*/{{/isEnum}}
         {{/queryParams}}
 
         // Form params
-        {{#formParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();{{/isContainer}}
+        {{#formParams}}{{#notFile}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
+        {{/notFile}}{{#isFile}}UploadedFile {{baseName}} = context.uploadedFile("{{baseName}}");
+        if ({{baseName}} != null)
+            FileUtil.streamToFile({{baseName}}.getContent(), {{baseName}}Path + {{baseName}}.getFilename());
+        {{/isFile}}
         {{/formParams}}
 
         // Headers
         {{#headerParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}).get{{^required}}OrNull{{/required}}();{{/isContainer}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
         {{/headerParams}}
+
+        // Body
+        {{#bodyParam}}{{^isContainer}}
+        {{dataType}} {{baseName}} = context.bodyValidator({{dataType}}.class).get{{#required}}OrNull{{/required}}();
+        {{/isContainer}}{{#isContainer}}JSONArray jsonArray = new JSONArray(context.body());
+        for (int i = 0; i < jsonArray.length(); i++) {
+            {{baseType}} element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), {{baseType}}.class);
+        }{{/isContainer}}{{/bodyParam}}
 
         context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
 
@@ -55,13 +91,12 @@ public class {{classname}} {
         this.isCodeSet = false;
         {{/dataType}}
         {{/responses}}
-        switch (this.code){
-        {{#responses}}
-            case {{code}}:
+        switch (this.code) {
+        {{#responses}}{{^isDefault}}case {{code}} -> {
                 {{#dataType}}context.result(result);{{/dataType}}{{^dataType}}context.result("{{message}}");{{/dataType}}
-                break;
-        {{/responses}}
-            default:
+                context.status({{code}});
+            }{{/isDefault}}{{/responses}}
+            default -> { {{#responses}}{{#isDefault}}context.result("{{message}}");{{/isDefault}}{{/responses}} }
         }
         this.isCodeSet = false;
     }
@@ -71,9 +106,5 @@ public class {{classname}} {
     public final void setCode(int code) {
         this.code = code;
         this.isCodeSet = true;
-    }
-
-    class WrongExecutionSequenceException extends Exception {
-        public WrongExecutionSequenceException(String message) { super(message); }
     }
 }
