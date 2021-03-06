@@ -85,6 +85,14 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.properties") );
         supportingFiles.add(new SupportingFile( "gradle-wrapper.jar",
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.jar") );
+
+        String authFolder = sourceFolder + File.separator + "auth";
+        supportingFiles.add(new SupportingFile("auth/Authentication.mustache", authFolder, "Authentication.java"));
+        supportingFiles.add(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/ApiKeyAuth.mustache", authFolder, "ApiKeyAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/OAuth.mustache", authFolder, "OAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/OAuthFlow.mustache", authFolder, "OAuthFlow.java"));
+        supportingFiles.add(new SupportingFile("auth/Pair.mustache", authFolder, "Pair.java"));
     }
 
     @Override

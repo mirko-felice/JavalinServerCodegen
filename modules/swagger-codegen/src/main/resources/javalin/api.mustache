@@ -6,12 +6,15 @@ import io.javalin.http.Context;
 import io.javalin.core.validation.JavalinValidation;
 import java.util.Collections;
 import io.javalin.http.BadRequestResponse;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.UploadedFile;
 import io.javalin.core.util.FileUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import io.javalin.plugin.json.JavalinJson;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import utils.WrongExecutionSequenceException;
 {{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}//import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
 
@@ -45,6 +48,22 @@ public class {{classname}}API {
         String contentType = Objects.requireNonNull(context.contentType());
         if ({{#consumes}}!contentType.contains("{{mediaType}}"){{#hasMore}} || {{/hasMore}}{{/consumes}})
             throw new BadRequestResponse();{{/hasConsumes}}
+
+        // Authentication
+        {{#authMethods}}
+         {{^isOAuth}}if (!context.{{#isApiKey}}{{#isKeyInQuery}}queryParams().contains("{{keyParamName}}")){{/isKeyInQuery}}{{#isKeyInHeader}}headerMap().containsKey("{{keyParamName}}"){{/isKeyInHeader}}{{/isApiKey}}{{#isBasic}}basicAuthCredentialsExist(){{/isBasic}})
+            throw new UnauthorizedResponse();{{/isOAuth}}
+         {{#isBasic}}final BasicAuthCredentials credentials = context.basicAuthCredentials(); //TODO check credentials{{/isBasic}}{{#isOAuth}}final String flow = "{{flow}}";
+         {{#isCode}}final String authorizationURL = "{{authorizationUrl}}";
+         final String tokenUrl = "{{tokenUrl}}";{{/isCode}}{{#isPassword}}final String tokenUrl = "{{tokenUrl}}";{{/isPassword}}{{#isImplicit}}final String authorizationURL = "{{authorizationUrl}}";{{/isImplicit}}{{#isApplication}}final String tokenUrl = "{{tokenUrl}}";{{/isApplication}}
+         final List<Map<String,String>> scopes = new ArrayList<>();
+         Map<String, String> scope;
+         {{#scopes}}scope = new HashMap<>();
+         scope.put("{{scope}}", "{{description}}");
+         scopes.add(scope);
+         {{/scopes}}{{/isOAuth}}
+        {{/authMethods}}
+
         // Path params
         {{#pathParams}}
         {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get();
@@ -70,7 +89,7 @@ public class {{classname}}API {
 
         // Headers
         {{#headerParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.header("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
         {{/headerParams}}
 
         // Body
