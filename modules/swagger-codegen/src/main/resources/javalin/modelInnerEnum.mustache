@@ -1,0 +1,28 @@
+    public enum {{{datatypeWithEnum}}}{
+        {{#allowableValues}}{{#enumVars}}
+        {{{name}}}{{^-last}},
+        {{/-last}}{{#-last}};{{/-last}}{{/enumVars}}{{/allowableValues}}
+
+        private {{datatype}} value;
+
+        static {
+            {{#allowableValues}}{{#enumVars}}{{{name}}}.value = {{{value}}};{{^-last}}
+            {{/-last}}{{/enumVars}}{{/allowableValues}}
+        }
+
+        public {{{datatypeWithEnum}}} fromValue({{{datatype}}} value){
+            for ({{{datatypeWithEnum}}} {{baseName}} : values()){
+                if ({{#isNumeric}}{{baseName}}.value == value{{/isNumeric}}{{^isNumeric}}{{baseName}}.value.equals(value){{/isNumeric}})
+                    return {{baseName}};
+            }
+            return null;
+        }
+
+        public {{datatype}} getValue(){
+            return this.value;
+        }
+
+        public String toString(){
+            return String.valueOf(this.value);
+        }
+    }
