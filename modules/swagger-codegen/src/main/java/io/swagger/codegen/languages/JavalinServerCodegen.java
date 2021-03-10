@@ -112,6 +112,11 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     }
 
     @Override
+    public Map<String, Object> postProcessModels(Map<String, Object> objs) {
+        return postProcessModelsEnum(objs);
+    }
+
+    @Override
     public String apiFileFolder() {
         return outputFolder + "/" + sourceFolder + "/" + apiPackage().replace('.', '/');
     }
@@ -170,6 +175,54 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         }
 
         return name;
+    }
+
+    //From values creates valid Variable names for Java
+    @Override
+    public String toEnumVarName(String value, String datatype) {
+        if (value.length() == 0) {
+            return "EMPTY";
+        }
+
+        // for symbol, e.g. $, #
+        if (getSymbolName(value) != null) {
+            return getSymbolName(value).toUpperCase();
+        }
+
+        // number
+        if ("Integer".equals(datatype) || "Long".equals(datatype) || "Float".equals(datatype) || "Double".equals(datatype)  || "BigDecimal".equals(datatype)) {
+            String varName = "NUMBER_" + value;
+            varName = varName.replaceAll("-", "MINUS_");
+            varName = varName.replaceAll("\\+", "PLUS_");
+            varName = varName.replaceAll("\\.", "_DOT_");
+            return varName;
+        }
+
+        // string
+        String var = value.replaceAll("\\W+", "_").toUpperCase();
+        if (var.matches("\\d.*")) {
+            return "_" + var;
+        } else {
+            return var;
+        }
+    }
+
+    //Transform Swagger values to valid Java values
+    @Override
+    public String toEnumValue(String value, String datatype) {
+        if ("Integer".equals(datatype) || "Double".equals(datatype) || "Boolean".equals(datatype)) {
+            return value;
+        } else if ("Long".equals(datatype)) {
+            // add l to number, e.g. 2048 => 2048l
+            return value + "l";
+        } else if ("Float".equals(datatype)) {
+            // add f to number, e.g. 3.14 => 3.14f
+            return value + "f";
+        } else if ("BigDecimal".equals(datatype)) {
+            return "new BigDecimal(" + escapeText(value) + ")";
+        } else {
+            return "\"" + escapeText(value) + "\"";
+        }
     }
 
     private boolean startsWithTwoUppercaseLetters(String name) {
