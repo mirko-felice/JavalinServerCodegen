@@ -1,4 +1,4 @@
-set JAVA_OPTS=-DdebugOperations
+set JAVA_OPTS=-DdebugModels
 
 set executable=.\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar
 
@@ -15,4 +15,6 @@ java %JAVA_OPTS% -jar %executable% %ags%
 
 cd samples\javalin
 
-gradlew run
+gradlew build
+
+cd ..\..

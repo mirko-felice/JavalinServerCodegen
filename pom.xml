@@ -128,7 +128,7 @@
                     <argLine>-XX:+StartAttachListener</argLine>
                 </configuration>
                 <executions>
-                    <execution>
+                    <!--<execution>
                         <id>test-testng</id>
                         <phase>test</phase>
                         <goals>
@@ -138,7 +138,7 @@
                             <junitArtifactName>none:none</junitArtifactName>
                             <testNGArtifactName>org.testng:testng</testNGArtifactName>
                         </configuration>
-                    </execution>
+                    </execution>-->
                 </executions>
             </plugin>
             <plugin>

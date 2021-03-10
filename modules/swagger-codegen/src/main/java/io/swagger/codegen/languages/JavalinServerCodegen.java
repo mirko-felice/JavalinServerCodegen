@@ -2,21 +2,25 @@ package io.swagger.codegen.languages;
 
 import io.swagger.codegen.*;
 import io.swagger.codegen.mustache.LowercaseLambda;
+import io.swagger.codegen.mustache.UppercaseLambda;
 import io.swagger.models.Model;
 import io.swagger.models.Operation;
 import io.swagger.models.Swagger;
+import io.swagger.models.properties.MapProperty;
 import io.swagger.models.properties.Property;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfig {
 
     protected String projectFolder = "src" + File.separator + "main";
+    protected String projectTestFolder = "src" + File.separator + "test";
     protected String sourceFolder = projectFolder + File.separator + "java";
-    protected String testFolder = "src" + File.separator + "test" + File.separator + "java";
+    protected String testFolder = projectTestFolder + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
 
     public JavalinServerCodegen(){
@@ -25,7 +29,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         outputFolder = "generated-code/javalin";
         embeddedTemplateDir = templateDir = "javalin";
         apiTemplateFiles.put("api.mustache", ".java");
-        //apiTestTemplateFiles.put("api_test.mustache", ".java");
+        apiTestTemplateFiles.put("api_test.mustache", ".java");
         apiPackage = "api";
         setReservedWordsLowerCase(
                 Arrays.asList(
@@ -37,7 +41,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                         "void", "class", "finally", "long", "strictfp", "volatile", "const", "float", "list",
                         "native", "super", "while", "null")
         );
-        languageSpecificPrimitives = new HashSet<String>(
+        languageSpecificPrimitives = new HashSet<>(
                 Arrays.asList(
                         "String",
                         "boolean",
@@ -61,6 +65,14 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         typeMapping.put("object", "Object");
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
+        String utilsFolder = sourceFolder + File.separator + "utils";
+        supportingFiles.add(new SupportingFile("apiException.mustache", utilsFolder, "ApiException.java"));
+        supportingFiles.add(new SupportingFile("remoteException.mustache", utilsFolder, "RemoteException.java"));
+        supportingFiles.add(new SupportingFile("presentationException.mustache", utilsFolder, "PresentationException.java"));
+        supportingFiles.add(new SupportingFile("presentation.mustache", utilsFolder, "Presentation.java"));
+        supportingFiles.add(new SupportingFile("serializer.mustache", utilsFolder, "Serializer.java"));
+        supportingFiles.add(new SupportingFile("deserializer.mustache", utilsFolder, "Deserializer.java"));
+        supportingFiles.add(new SupportingFile("wrongExecutionSequenceException.mustache", utilsFolder, "WrongExecutionSequenceException.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -73,6 +85,14 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.properties") );
         supportingFiles.add(new SupportingFile( "gradle-wrapper.jar",
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.jar") );
+
+        String authFolder = sourceFolder + File.separator + "auth";
+        supportingFiles.add(new SupportingFile("auth/Authentication.mustache", authFolder, "Authentication.java"));
+        supportingFiles.add(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/ApiKeyAuth.mustache", authFolder, "ApiKeyAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/OAuth.mustache", authFolder, "OAuth.java"));
+        supportingFiles.add(new SupportingFile("auth/OAuthFlow.mustache", authFolder, "OAuthFlow.java"));
+        supportingFiles.add(new SupportingFile("auth/Pair.mustache", authFolder, "Pair.java"));
     }
 
     @Override
@@ -85,8 +105,15 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("HashMap", "java.util.HashMap");
         importMapping.put("File", "java.io.File");
         importMapping.put("Objects", "java.util.Objects");
+        importMapping.put("CompletableFuture", "java.util.concurrent.CompletableFuture");
         //importMapping.put("Deprecated", "");
         additionalProperties.put("lowercase", new LowercaseLambda());
+        additionalProperties.put("uppercase", new UppercaseLambda());
+    }
+
+    @Override
+    public Map<String, Object> postProcessModels(Map<String, Object> objs) {
+        return postProcessModelsEnum(objs);
     }
 
     @Override
@@ -104,12 +131,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         if (name.length() == 0) {
             return "DefaultApi";
         }
-        return camelize(name) + "API";
+        return camelize(name);
     }
 
     @Override
     public String toApiFilename(String name) {
-        return toApiName(name);
+        return toApiName(name) + "API";
     }
 
     @Override
@@ -148,6 +175,54 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         }
 
         return name;
+    }
+
+    //From values creates valid Variable names for Java
+    @Override
+    public String toEnumVarName(String value, String datatype) {
+        if (value.length() == 0) {
+            return "EMPTY";
+        }
+
+        // for symbol, e.g. $, #
+        if (getSymbolName(value) != null) {
+            return getSymbolName(value).toUpperCase();
+        }
+
+        // number
+        if ("Integer".equals(datatype) || "Long".equals(datatype) || "Float".equals(datatype) || "Double".equals(datatype)  || "BigDecimal".equals(datatype)) {
+            String varName = "NUMBER_" + value;
+            varName = varName.replaceAll("-", "MINUS_");
+            varName = varName.replaceAll("\\+", "PLUS_");
+            varName = varName.replaceAll("\\.", "_DOT_");
+            return varName;
+        }
+
+        // string
+        String var = value.replaceAll("\\W+", "_").toUpperCase();
+        if (var.matches("\\d.*")) {
+            return "_" + var;
+        } else {
+            return var;
+        }
+    }
+
+    //Transform Swagger values to valid Java values
+    @Override
+    public String toEnumValue(String value, String datatype) {
+        if ("Integer".equals(datatype) || "Double".equals(datatype) || "Boolean".equals(datatype)) {
+            return value;
+        } else if ("Long".equals(datatype)) {
+            // add l to number, e.g. 2048 => 2048l
+            return value + "l";
+        } else if ("Float".equals(datatype)) {
+            // add f to number, e.g. 3.14 => 3.14f
+            return value + "f";
+        } else if ("BigDecimal".equals(datatype)) {
+            return "new BigDecimal(" + escapeText(value) + ")";
+        } else {
+            return "\"" + escapeText(value) + "\"";
+        }
     }
 
     private boolean startsWithTwoUppercaseLetters(String name) {
@@ -192,8 +267,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             codegenOperation.imports.add("List");
         if (codegenOperation.allParams.stream().anyMatch(p -> p.isFile))
             codegenOperation.imports.add("File");
-        //if (codegenOperation.isDeprecated)
-        //    codegenOperation.imports.add("Deprecated");
+        if (!codegenOperation.responses.isEmpty())
+            codegenOperation.imports.add("CompletableFuture");
         return codegenOperation;
     }
 
@@ -218,6 +293,11 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     }
 
     @Override
+    public String toApiTestFilename(String name) {
+        return toApiFilename(name) + "Test";
+    }
+
+    @Override
     public String getSwaggerType(Property p) {
         String swaggerType = super.getSwaggerType(p);
 
@@ -232,5 +312,19 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             LOGGER.error("No Type defined for Property " + p);
         }
         return toModelName(swaggerType);
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
+        super.postProcessOperations(objs);
+        Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+        if (operations != null) {
+            List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
+            for (CodegenOperation operation : ops)
+                for (CodegenResponse response: operation.responses)
+                    if (response.isMapContainer)
+                        response.baseType = typeMapping.get(((MapProperty)response.schema).getAdditionalProperties().getType());
+        }
+        return operations;
     }
 }
