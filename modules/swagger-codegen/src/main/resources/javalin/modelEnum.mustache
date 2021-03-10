@@ -10,7 +10,7 @@ public enum {{{datatypeWithEnum}}}{
         {{/-last}}{{/enumVars}}{{/allowableValues}}
     }
 
-    public {{{datatypeWithEnum}}} fromValue({{{datatype}}} value){
+    public static {{{datatypeWithEnum}}} fromValue({{{datatype}}} value){
         for ({{{datatypeWithEnum}}} {{baseName}} : values()){
             if ({{#isNumeric}}{{baseName}}.value == value{{/isNumeric}}{{^isNumeric}}{{baseName}}.value.equals(value){{/isNumeric}})
                 return {{baseName}};

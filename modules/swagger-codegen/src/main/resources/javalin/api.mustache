@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import utils.WrongExecutionSequenceException;
-{{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}//import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
+{{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
 
 {{description}}
 public class {{classname}}API {
@@ -74,10 +74,10 @@ public class {{classname}}API {
         // Query params
         {{#queryParams}}
         {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.queryParam{{#isListContainer}}s{{/isListContainer}}("{{baseName}}"{{#isListContainer}});{{/isListContainer}}{{^isListContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isListContainer}}
-        {{#isEnum}}/*List<{{enumName}}> {{#lowercase}}{{enumName}}{{/lowercase}}list = new ArrayList<>();
+        {{#isEnum}}List<{{enumName}}> {{#lowercase}}{{enumName}}{{/lowercase}}list = new ArrayList<>();
         for ({{baseType}} value : {{baseName}})
             {{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue(value));
-        {{#defaultValue}}{{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue({{defaultValue}}));{{/defaultValue}}*/{{/isEnum}}
+        {{#defaultValue}}{{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue({{defaultValue}}));{{/defaultValue}}{{/isEnum}}
         {{/queryParams}}
 
         // Form params

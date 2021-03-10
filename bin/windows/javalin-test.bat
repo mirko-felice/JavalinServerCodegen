@@ -15,6 +15,6 @@ java %JAVA_OPTS% -jar %executable% %ags%
 
 cd samples\javalin
 
-gradlew build
+gradlew assemble
 
 cd ..\..
