@@ -1,3 +1,4 @@
+{{>licenseInfo}}
 package {{package}};
 
 {{#imports}}import {{import}};
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import utils.WrongExecutionSequenceException;
 {{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}//import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
 
+{{description}}
 public class {{classname}}API {
 
     private final String basePath;
@@ -45,8 +47,8 @@ public class {{classname}}API {
     public void {{#operationId}}{{operationId}}{{/operationId}}{{^operationId}}{{#lowercase}}{{httpMethod}}{{/lowercase}}{{path}}{{/operationId}}(Context context) throws WrongExecutionSequenceException {
         {{#allParams}}{{#isFile}}final String {{baseName}}Path = ""; // TODO set uploadFilePath{{/isFile}}{{/allParams}}
         {{#hasConsumes}}// Check request content type
-        String contentType = Objects.requireNonNull(context.contentType());
-        if ({{#consumes}}!contentType.contains("{{mediaType}}"){{#hasMore}} || {{/hasMore}}{{/consumes}})
+        String contentType = context.contentType();
+        if (contentType == null{{#consumes}} || !contentType.contains("{{mediaType}}"){{/consumes}})
             throw new BadRequestResponse();{{/hasConsumes}}
 
         // Authentication
@@ -111,11 +113,11 @@ public class {{classname}}API {
         {{/dataType}}
         {{/responses}}
         switch (this.code) {
-        {{#responses}}{{^isDefault}}case {{code}} -> {
+            {{#responses}}{{^isDefault}}case {{code}} -> {
                 {{#dataType}}context.result(result);{{/dataType}}{{^dataType}}context.result("{{message}}");{{/dataType}}
                 context.status({{code}});
-            }{{/isDefault}}{{/responses}}
-            default -> { {{#responses}}{{#isDefault}}context.result("{{message}}");{{/isDefault}}{{/responses}} }
+            }{{/isDefault}}
+            {{/responses}}default -> { {{#responses}}{{#isDefault}}context.result("{{message}}");{{/isDefault}}{{/responses}} }
         }
         this.isCodeSet = false;
     }

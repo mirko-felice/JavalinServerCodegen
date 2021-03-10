@@ -1,7 +1,7 @@
+{{>licenseInfo}}
 import io.javalin.Javalin;
 {{#apiInfo}}{{#apis}}import {{apiPackage}}.{{classFilename}};
 {{/apis}}{{/apiInfo}}
-
 public class Main {
     public static void main(String[] args) {
         String host = "{{host}}".split(":")[0];
