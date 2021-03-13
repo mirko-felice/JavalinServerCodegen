@@ -20,30 +20,30 @@ public class {{classname}}{
         {{/items.isEnum}}
     {{/vars}}
 
-    {{#isAlias}}private {{{datatype}}} {{classVarName}}{{#defaultValue}} = {{defaultValue}}{{/defaultValue}};
+    {{#isAlias}}private {{{dataType}}} {{classVarName}}{{#defaultValue}} = {{defaultValue}}{{/defaultValue}};
     {{/isAlias}}{{#vars}}{{^isContainer}}private {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}} {{baseName}}{{#defaultValue}} = {{defaultValue}}{{/defaultValue}};
     {{/isContainer}}{{/vars}}{{#vars}}{{#isContainer}}private {{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}> {{baseName}} = new {{#isListContainer}}ArrayList<>{{/isListContainer}}{{#isMapContainer}}HashMap<>{{/isMapContainer}}();
     {{/isContainer}}{{/vars}}{{#isArrayModel}}private {{#parentContainer}}{{{datatype}}}<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}} = new {{{parent}}}();
     {{/isArrayModel}}
 
-    public {{name}}({{#isAlias}}{{{datatype}}} {{classVarName}}{{/isAlias}}{{#vars}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{#isArrayModel}}{{#parentContainer}}{{{datatype}}}<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}{{/isArrayModel}}){
+    public {{name}}({{#isAlias}}{{{dataType}}} {{classVarName}}{{/isAlias}}{{#vars}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{#isArrayModel}}{{#parentContainer}}{{{datatype}}}<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}{{/isArrayModel}}){
         {{#isAlias}}this.{{classVarName}} = {{classVarName}};
         {{/isAlias}}{{#vars}}this.{{baseName}} = {{baseName}};{{#hasMore}}
         {{/hasMore}}{{/vars}}{{#isArrayModel}}this.{{classVarName}} = {{classVarName}};{{/isArrayModel}}
     }
 
 {{#isAlias}}
-    public {{{datatype}}} get{{classname}}(){
+    public {{{dataType}}} get{{classname}}(){
         return this.{{classVarName}};
     }
 
-    public void set{{classname}}({{{datatype}}} {{classVarName}}){
+    public void set{{classname}}({{{dataType}}} {{classVarName}}){
         this.{{classVarName}} = {{classVarName}};
     }
 
 {{/isAlias}}
 {{#isArrayModel}}
-    public {{{datatype}}} get{{classname}}(){
+    public {{#parentContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} get{{classname}}(){
         return this.{{classVarName}};
     }
 
@@ -69,7 +69,7 @@ public class {{classname}}{
 
     public boolean equals({{name}} other){
         return {{#vars}}this.{{baseName}}.equals(other.{{getter}}()){{#hasMore}} && {{/hasMore}}{{^hasMore}};{{/hasMore}}
-               {{/vars}}{{#isAlias}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isAlias}}{{#isArrayModel}}this.{{classVarName}}.equals(other.get{{classVarName}}());{{/isArrayModel}}
+               {{/vars}}{{#isAlias}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isAlias}}{{#isArrayModel}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isArrayModel}}
     }
 
     @Override

@@ -98,15 +98,20 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public void processOpts() {
         super.processOpts();
+        importMapping.put("Context", "io.javalin.http.Context");
         importMapping.put("Javalin", "io.javalin.Javalin");
         importMapping.put("List", "java.util.List");
         importMapping.put("ArrayList", "java.util.ArrayList");
         importMapping.put("Map", "java.util.Map");
         importMapping.put("HashMap", "java.util.HashMap");
-        importMapping.put("File", "java.io.File");
         importMapping.put("Objects", "java.util.Objects");
         importMapping.put("CompletableFuture", "java.util.concurrent.CompletableFuture");
-        //importMapping.put("Deprecated", "");
+        importMapping.put("BigDecimal", "java.math.BigDecimal");
+        importMapping.put("JavalinFile", "io.javalin.core.util.FileUtil");
+        importMapping.put("UploadedFile","io.javalin.http.UploadedFile");
+        importMapping.put("BadRequest", "io.javalin.http.BadRequestResponse");
+        importMapping.put("JavalinJson", "io.javalin.plugin.json.JavalinJson");
+        importMapping.put("JSONArray", "org.json.JSONArray");
         additionalProperties.put("lowercase", new LowercaseLambda());
         additionalProperties.put("uppercase", new UppercaseLambda());
     }
@@ -261,14 +266,27 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
-        codegenOperation.imports.add("Javalin");
-        codegenOperation.imports.add("Objects");
+        codegenOperation.imports.addAll(Arrays.asList("Javalin", "Context", "Objects"));
+        codegenOperation.imports.addAll(Arrays.asList("Map", "HashMap", "List", "ArrayList"));
         if (codegenOperation.allParams.stream().anyMatch(p -> p.isListContainer))
             codegenOperation.imports.add("List");
         if (codegenOperation.allParams.stream().anyMatch(p -> p.isFile))
-            codegenOperation.imports.add("File");
-        if (!codegenOperation.responses.isEmpty())
+            codegenOperation.imports.addAll(Arrays.asList("JavalinFile", "UploadedFile"));
+        if (!codegenOperation.responses.isEmpty()) {
             codegenOperation.imports.add("CompletableFuture");
+            if (codegenOperation.responses.stream().anyMatch(r -> r.isMapContainer))
+                codegenOperation.imports.add("Map");
+            if (codegenOperation.responses.stream().anyMatch(r -> r.isListContainer))
+                codegenOperation.imports.add("List");
+        }
+        if (codegenOperation.hasConsumes)
+            codegenOperation.imports.add("BadRequest");
+        if (codegenOperation.bodyParam != null && codegenOperation.bodyParam.isContainer)
+            codegenOperation.imports.addAll(Arrays.asList("JavalinJson", "JSONArray"));
+        codegenOperation.allParams.stream().filter(p -> p.isEnum).forEach(codegenParameter -> {
+            /*importMapping.put("", String.format("%s.%s.%s", modelPackage, c codegenParameter.enumName));
+            codegenOperation.imports.add("");*/
+        });
         return codegenOperation;
     }
 
@@ -279,6 +297,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
             codegenModel.imports.addAll(Arrays.asList("List", "ArrayList"));
         if ((codegenModel.isArrayModel && codegenModel.parentContainer.isMapContainer) || codegenModel.vars.stream().anyMatch(p -> p.isMapContainer))
             codegenModel.imports.addAll(Arrays.asList("Map", "HashMap"));
+        if (codegenModel.getIsNumber() || codegenModel.vars.stream().anyMatch(p -> p.isNumber))
+            codegenModel.imports.add("BigDecimal");
         return codegenModel;
     }
 
@@ -321,9 +341,9 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         if (operations != null) {
             List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
             for (CodegenOperation operation : ops)
-                for (CodegenResponse response: operation.responses)
+                for (CodegenResponse response : operation.responses)
                     if (response.isMapContainer)
-                        response.baseType = typeMapping.get(((MapProperty)response.schema).getAdditionalProperties().getType());
+                        response.baseType = typeMapping.get(((MapProperty) response.schema).getAdditionalProperties().getType());
         }
         return operations;
     }
