@@ -3,17 +3,12 @@ package io.swagger.codegen.languages;
 import io.swagger.codegen.*;
 import io.swagger.codegen.mustache.LowercaseLambda;
 import io.swagger.codegen.mustache.UppercaseLambda;
-import io.swagger.models.Model;
-import io.swagger.models.Operation;
-import io.swagger.models.Swagger;
+import io.swagger.models.*;
 import io.swagger.models.properties.MapProperty;
 import io.swagger.models.properties.Property;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfig {
 
@@ -22,6 +17,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String testFolder = projectTestFolder + File.separator + "java";
     protected String gradleWrapperPackage = "gradle.wrapper";
+    protected List<String> schemes = new ArrayList<>();
 
     public JavalinServerCodegen(){
         super();
@@ -111,6 +107,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("UploadedFile","io.javalin.http.UploadedFile");
         importMapping.put("BadRequest", "io.javalin.http.BadRequestResponse");
         importMapping.put("JavalinJson", "io.javalin.plugin.json.JavalinJson");
+        importMapping.put("WSContext", "io.javalin.websocket.WsMessageContext");
+        importMapping.put("WrongExecutionSequence", "utils.WrongExecutionSequenceException");
         importMapping.put("JSONArray", "org.json.JSONArray");
         additionalProperties.put("lowercase", new LowercaseLambda());
         additionalProperties.put("uppercase", new UppercaseLambda());
@@ -266,7 +264,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public CodegenOperation fromOperation(String path, String httpMethod, Operation operation, Map<String, Model> definitions, Swagger swagger) {
         CodegenOperation codegenOperation = super.fromOperation(path, httpMethod, operation, definitions, swagger);
-        codegenOperation.imports.addAll(Arrays.asList("Javalin", "Context", "Objects"));
+        codegenOperation.imports.addAll(Arrays.asList("Javalin", "Context", "Objects", "WSContext"));
         codegenOperation.imports.addAll(Arrays.asList("Map", "HashMap", "List", "ArrayList"));
         if (codegenOperation.allParams.stream().anyMatch(p -> p.isListContainer))
             codegenOperation.imports.add("List");
@@ -278,6 +276,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 codegenOperation.imports.add("Map");
             if (codegenOperation.responses.stream().anyMatch(r -> r.isListContainer))
                 codegenOperation.imports.add("List");
+            if (codegenOperation.responses.stream().anyMatch(r -> r.dataType != null))
+                codegenOperation.imports.add("WrongExecutionSequence");
         }
         if (codegenOperation.hasConsumes)
             codegenOperation.imports.add("BadRequest");
@@ -335,15 +335,28 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     }
 
     @Override
+    public void preprocessSwagger(Swagger swagger) {
+        super.preprocessSwagger(swagger);
+        for (Scheme scheme: swagger.getSchemes()){
+            this.schemes.add(scheme.toValue());
+        }
+    }
+
+    @Override
     public Map<String, Object> postProcessOperations(Map<String, Object> objs) {
         super.postProcessOperations(objs);
         Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
         if (operations != null) {
             List<CodegenOperation> ops = (List<CodegenOperation>) operations.get("operation");
-            for (CodegenOperation operation : ops)
+            for (CodegenOperation operation : ops) {
+                if (this.schemes.contains("ws") || this.schemes.contains("wss"))
+                    operation.hasWSScheme = true;
+                if (this.schemes.contains("http") || this.schemes.contains("https"))
+                    operation.hasHttpScheme = true;
                 for (CodegenResponse response : operation.responses)
                     if (response.isMapContainer)
                         response.baseType = typeMapping.get(((MapProperty) response.schema).getAdditionalProperties().getType());
+            }
         }
         return operations;
     }

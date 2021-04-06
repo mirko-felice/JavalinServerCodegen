@@ -39,7 +39,8 @@ packages/
 nbactions.xml
 
 samples/
-bin/
+bin/*
+bin\
 
 # nodejs
 **/node_modules

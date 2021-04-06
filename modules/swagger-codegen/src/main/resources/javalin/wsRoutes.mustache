@@ -1,0 +1,14 @@
+    {{#-first}}server.ws(this.basePath + "/{{baseName}}", ws -> {
+            ws.onConnect(ctx -> System.out.println("Connected"));
+            ws.onMessage(msgContext -> {
+                switch (msgContext.message()){ {{/-first}}
+                    case "{{httpMethod}}{{path}}" -> {{operationId}}(msgContext);{{#-last}}
+                }
+            });
+            ws.onBinaryMessage(msgContext -> {
+               byte[] data = msgContext.data();
+               //TODO manage binary data
+            });
+            ws.onClose(ctx -> System.out.println("Connection Closed"));
+            ws.onError(ctx -> System.out.println("Error occurred"));
+        });{{/-last}}

@@ -38,7 +38,8 @@
     }
   ],
   "schemes": [
-    "http"
+    "http",
+    "ws"
   ],
   "paths": {
     "/pet/{petId}/uploadImage": {
@@ -215,6 +216,9 @@
             },
             "collectionFormat": "multi"
           }
+        ],
+        "schemes": [
+          "ws"
         ],
         "responses": {
           "200": {
