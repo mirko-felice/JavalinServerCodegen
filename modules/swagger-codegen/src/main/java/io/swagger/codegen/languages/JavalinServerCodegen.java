@@ -294,9 +294,9 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     public CodegenModel fromModel(String name, Model model, Map<String, Model> allDefinitions) {
         CodegenModel codegenModel = super.fromModel(name, model, allDefinitions);
         if ((codegenModel.isArrayModel && codegenModel.parentContainer.isListContainer) || codegenModel.vars.stream().anyMatch(p -> p.isListContainer))
-            codegenModel.imports.addAll(Arrays.asList("List", "ArrayList"));
+            codegenModel.imports.add("List");
         if ((codegenModel.isArrayModel && codegenModel.parentContainer.isMapContainer) || codegenModel.vars.stream().anyMatch(p -> p.isMapContainer))
-            codegenModel.imports.addAll(Arrays.asList("Map", "HashMap"));
+            codegenModel.imports.add("Map");
         if (codegenModel.getIsNumber() || codegenModel.vars.stream().anyMatch(p -> p.isNumber))
             codegenModel.imports.add("BigDecimal");
         return codegenModel;

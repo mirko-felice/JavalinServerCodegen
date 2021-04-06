@@ -1,11 +1,6 @@
 package {{modelPackage}};
 
-{{#imports}}
-import {{import}};
+{{#imports}}import {{import}};
 {{/imports}}
-
-{{#models}}
-{{#model}}
-{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{^isEnum}}{{>modelClass}}{{/isEnum}}
-{{/model}}
-{{/models}}
+{{#models}}{{#model}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{^isEnum}}{{>modelClass}}{{/isEnum}}
+{{/model}}{{/models}}
