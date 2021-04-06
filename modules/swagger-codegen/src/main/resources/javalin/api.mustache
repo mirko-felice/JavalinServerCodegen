@@ -8,7 +8,7 @@ package {{package}};
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;{{/isOAuth}}{{/authMethods}}{{/operation}}{{/operations}}
-import utils.WrongExecutionSequenceException;{{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}
+{{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}
 import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
 
 public class {{classname}}API {
@@ -24,100 +24,19 @@ public class {{classname}}API {
     public void registerRoutes(Javalin server) {
     {{#operations}}
     {{#operation}}
-        server.{{#lowercase}}{{httpMethod}}{{/lowercase}}(this.basePath + "{{path}}".replace("{",":").replace("}",""), this::{{operationId}});{{#isDeprecated}} // TODO endpoint should be deleted.{{/isDeprecated}}
+    {{#hasHttpScheme}}{{>httpRoutes}}{{/hasHttpScheme}}
     {{/operation}}
+    {{/operations}}
+    {{#operations}}
+    {{#operation}}{{#hasWSScheme}}{{>wsRoutes}}{{/hasWSScheme}}{{/operation}}
     {{/operations}}
     }
     {{#operations}}{{#operation}}
-    /**
-    * {{{summary}}}
-    *
-    * {{{notes}}}
-    * {{#pathParams}}{{#-last}}
-    * PathParams:{{/-last}}
-    * {{/pathParams}}{{#pathParams}}{{baseName}}: {{{description}}}
-    * {{/pathParams}}{{#queryParams}}{{#-last}}
-    * QueryParams:{{/-last}}
-    * {{/queryParams}}{{#queryParams}}{{baseName}}: {{{description}}}
-    * {{/queryParams}}{{#formParams}}{{#-last}}
-    * FormParams:{{/-last}}
-    * {{/formParams}}{{#formParams}}{{baseName}}: {{{description}}}
-    * {{/formParams}}{{#headerParams}}{{#-last}}
-    * HeaderParams:{{/-last}}
-    * {{/headerParams}}{{#headerParams}}{{baseName}}: {{{description}}}
-    * {{/headerParams}}
-    */{{#isDeprecated}}
-    @Deprecated{{/isDeprecated}}
-    public void {{operationId}}(Context context) throws WrongExecutionSequenceException {
-        {{#allParams}}{{#isFile}}final String {{baseName}}Path = ""; // TODO set uploadFilePath{{/isFile}}{{/allParams}}
-        {{#hasConsumes}}// Check request content type
-        String contentType = context.contentType();
-        if (contentType == null{{#consumes}} || !contentType.contains("{{mediaType}}"){{/consumes}})
-            throw new BadRequestResponse();{{/hasConsumes}}
-
-        {{#authMethods}}{{#-last}}// Authentication{{/-last}}{{/authMethods}}{{#authMethods}}
-        {{^isOAuth}}if (!context.{{#isApiKey}}{{#isKeyInQuery}}queryParams().contains("{{keyParamName}}")){{/isKeyInQuery}}{{#isKeyInHeader}}headerMap().containsKey("{{keyParamName}}"){{/isKeyInHeader}}{{/isApiKey}}{{#isBasic}}basicAuthCredentialsExist(){{/isBasic}})
-            throw new UnauthorizedResponse();{{/isOAuth}}
-        {{#isBasic}}final BasicAuthCredentials credentials = context.basicAuthCredentials(); //TODO check credentials{{/isBasic}}{{#isOAuth}}final String flow = "{{flow}}";
-        {{#isCode}}final String authorizationURL = "{{authorizationUrl}}";
-        final String tokenUrl = "{{tokenUrl}}";{{/isCode}}{{#isPassword}}final String tokenUrl = "{{tokenUrl}}";{{/isPassword}}{{#isImplicit}}final String authorizationURL = "{{authorizationUrl}}";{{/isImplicit}}{{#isApplication}}final String tokenUrl = "{{tokenUrl}}";{{/isApplication}}
-        final List<Map<String,String>> scopes = new ArrayList<>();
-        Map<String, String> scope;
-        {{#scopes}}scope = new HashMap<>();
-        scope.put("{{scope}}", "{{{description}}}");
-        scopes.add(scope);
-        {{/scopes}}{{/isOAuth}}
-        {{/authMethods}}
-
-        {{#pathParams}}{{#-last}}// Path params{{/-last}}{{/pathParams}}{{#pathParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get();
-        {{/pathParams}}
-
-        {{#queryParams}}{{#-last}}// Query params{{/-last}}{{/queryParams}}{{#queryParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.queryParam{{#isListContainer}}s{{/isListContainer}}("{{baseName}}"{{#isListContainer}});{{/isListContainer}}{{^isListContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isListContainer}}
-        {{#isEnum}}List<{{enumName}}> {{#lowercase}}{{enumName}}{{/lowercase}}list = new ArrayList<>();
-        for ({{baseType}} value : {{baseName}})
-            {{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue(value));
-        {{#defaultValue}}{{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue({{defaultValue}}));{{/defaultValue}}{{/isEnum}}
-        {{/queryParams}}
-
-        {{#formParams}}{{#-last}}// Form params{{/-last}}{{/formParams}}{{#formParams}}{{#notFile}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.formParam("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
-        {{/notFile}}{{#isFile}}UploadedFile {{baseName}} = context.uploadedFile("{{baseName}}");
-        if ({{baseName}} != null)
-            FileUtil.streamToFile({{baseName}}.getContent(), {{baseName}}Path + {{baseName}}.getFilename());
-        {{/isFile}}
-        {{/formParams}}
-
-        {{#headerParams}}{{#-last}}// Headers{{/-last}}{{/headerParams}}{{#headerParams}}
-        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.header("{{baseName}}"{{#isContainer}});{{/isContainer}}{{^isContainer}}, {{dataType}}.class{{#defaultValue}}, "{{{defaultValue}}}"{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isContainer}}
-        {{/headerParams}}
-
-        {{#bodyParam}}// Body
-        {{^isContainer}}{{dataType}} {{baseName}} = context.bodyValidator({{dataType}}.class).get{{#required}}OrNull{{/required}}();
-        {{/isContainer}}{{#isContainer}}JSONArray jsonArray = new JSONArray(context.body());
-        for (int i = 0; i < jsonArray.length(); i++) {
-            {{baseType}} element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), {{baseType}}.class);
-        }{{/isContainer}}{{/bodyParam}}
-
-        context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
-        {{#responses}}
-        {{#dataType}}
-        CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}> result = new CompletableFuture<>();
-        if (!this.isCodeSet)
-            throw new WrongExecutionSequenceException("Code not set!");
-        this.isCodeSet = false;
-        {{/dataType}}{{/responses}}
-
-        switch (this.code) {
-            {{#responses}}{{^isDefault}}case {{code}} -> {
-                {{#dataType}}context.result(result);{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}
-                context.status({{code}});
-            }{{/isDefault}}
-            {{/responses}}default -> { {{#responses}}{{#isDefault}}context.result("{{{message}}}");{{/isDefault}}{{/responses}} }
-        }
-        this.isCodeSet = false;
-    }
+{{#hasHttpScheme}}{{>httpMethods}}{{/hasHttpScheme}}
+    {{/operation}}
+    {{/operations}}
+    {{#operations}}{{#operation}}
+{{#hasWSScheme}}{{>wsMethods}}{{/hasWSScheme}}
     {{/operation}}
     {{/operations}}
 

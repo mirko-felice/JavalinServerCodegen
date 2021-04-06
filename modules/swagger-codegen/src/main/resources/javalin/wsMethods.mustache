@@ -1,0 +1,36 @@
+    /**
+    * {{{summary}}}
+    *
+    * {{{notes}}}
+    * {{#pathParams}}{{#-first}}
+    * PathParams:{{/-first}}
+    * {{baseName}}: {{{description}}}
+    * {{/pathParams}}{{#queryParams}}{{#-first}}
+    * QueryParams:{{/-first}}
+    * {{baseName}}: {{{description}}}
+    * {{/queryParams}}{{#headerParams}}{{#-first}}
+    * HeaderParams:{{/-first}}
+    * {{baseName}}: {{{description}}}
+    * {{/headerParams}}
+    */{{#isDeprecated}}
+    @Deprecated{{/isDeprecated}}
+    public void {{operationId}}(WsMessageContext context) {
+
+        String message = context.message();
+        {{#pathParams}}{{#-last}}// Path params{{/-last}}{{/pathParams}}{{#pathParams}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get();
+        {{/pathParams}}
+
+        {{#queryParams}}{{#-last}}// Query params{{/-last}}{{/queryParams}}{{#queryParams}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.queryParam{{#isListContainer}}s{{/isListContainer}}("{{baseName}}"{{#isListContainer}});{{/isListContainer}}{{^isListContainer}}, {{dataType}}.class, {{#defaultValue}}"{{{defaultValue}}}"{{/defaultValue}}{{^defaultValue}}null{{/defaultValue}}){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get{{^required}}OrNull{{/required}}();{{/isListContainer}}
+        {{#isEnum}}List<{{enumName}}> {{#lowercase}}{{enumName}}{{/lowercase}}list = new ArrayList<>();
+        for ({{baseType}} value : {{baseName}})
+        {{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue(value));
+        {{#defaultValue}}{{#lowercase}}{{enumName}}{{/lowercase}}list.add({{enumName}}.fromValue({{defaultValue}}));{{/defaultValue}}{{/isEnum}}
+        {{/queryParams}}
+
+        {{#headerParams}}{{#-last}}// Headers{{/-last}}{{/headerParams}}{{#headerParams}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.header("{{baseName}}");
+        {{/headerParams}}
+
+    }

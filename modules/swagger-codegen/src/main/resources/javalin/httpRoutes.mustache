@@ -1,0 +1,1 @@
+    server.{{#lowercase}}{{httpMethod}}{{/lowercase}}(this.basePath + "{{path}}".replace("{",":").replace("}",""), this::{{operationId}});{{#isDeprecated}} // TODO endpoint should be deleted.{{/isDeprecated}}
