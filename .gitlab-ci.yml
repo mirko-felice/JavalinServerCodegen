@@ -5,6 +5,10 @@ before_script:
   - chmod +x bin/javalin.sh
   - source $HOME/.sdkman/bin/sdkman-init.sh
 
+cache:
+  paths:
+    - samples/
+
 Compile:
   stage: build
   script:
