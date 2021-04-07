@@ -39,8 +39,7 @@ packages/
 nbactions.xml
 
 samples/
-bin/*
-bin\
+bin/windows/
 
 # nodejs
 **/node_modules
