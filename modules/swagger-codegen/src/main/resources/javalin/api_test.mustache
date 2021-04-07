@@ -13,13 +13,18 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.util.function.Function;
 import java.util.*;
 
+import static org.mockito.Mockito.*;
+
 /**
 * API tests for {{classname}}API
 */
 public class {{classname}}APITest {
+
+    private static final String BASE_PATH = "{{basePathWithoutHost}}";
+    private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
     private final HttpClient client = HttpClient.newHttpClient();
-    private final String basePath = "{{basePathWithoutHost}}";
-    private final {{classname}}API api = new {{classname}}API(basePath);
+    private final {{classname}}API api = new {{classname}}API(BASE_PATH);
+    private String uri;
     private Javalin server;
 
     @Before
@@ -38,48 +43,18 @@ public class {{classname}}APITest {
     *
     * {{{notes}}}
     *
-    * @throws ApiException
-    *          if the Api call fails
     */
     @Test
-    public void {{operationId}}Test() throws ApiException {
+    public void {{operationId}}Test() {
     {{#allParams}}
     {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
     {{/allParams}}
-    String uri = "http://localhost:7000" + basePath;
-    if ("{{path}}".contains("{"))
-        uri += "{{path}}".replace("{", "?").replace("}", "") + "=test";
-    else
-        uri += "{{path}}";
-    HttpRequest request = null;
-    switch ("{{#uppercase}}{{httpMethod}}{{/uppercase}}") {
-        case "GET":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .GET()
-                        .build();
-            break;
-        case "POST":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .POST(BodyPublishers.ofString("test"))
-                        .build();
-            break;
-        case "PUT":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .PUT(BodyPublishers.ofString("test"))
-                        .build();
-            break;
-        case "DELETE":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .DELETE()
-                        .build();
-            break;
-        default:
-    }
-    {{#returnType}}CompletableFuture<{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}> response = {{/returnType}}sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
+
+    uri = BASE_URI;
+    uri += replace("{{path}}");
+
+    HttpRequest request = {{#lowercase}}{{httpMethod}}{{/lowercase}}();
+    {{#returnType}}CompletableFuture<{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}> response = {{/returnType}}sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
 
     // TODO: test validations
 
@@ -97,42 +72,38 @@ public class {{classname}}APITest {
             throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
     }
 
-    private static <T> Function<String, CompletableFuture<T>> deserializeOne(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<T>();
-            try {
-                promise.complete(deserializer.deserialize(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest get(){
+        return HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .GET()
+                .build();
     }
 
-    private static <T> Function<String, CompletableFuture<List<T>>> deserializeMany(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<List<T>>();
-            try {
-                promise.complete(deserializer.deserializeMany(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest post(){
+        return HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .POST(BodyPublishers.ofString("test"))
+                .build();
     }
 
-    private static <T> Function<String, CompletableFuture<Map<String,T>>> deserializeMap(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<Map<String, T>>();
-            try {
-                promise.complete(deserializer.deserializeMap(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest put(){
+        return HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .PUT(BodyPublishers.ofString("test"))
+                .build();
+    }
+
+    private HttpRequest delete(){
+        return HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .DELETE()
+                .build();
+    }
+
+    private String replace(String toReplaced) {
+        if (toReplaced.contains("{"))
+            return toReplaced.replace("{", "?").replace("}", "") + "=test";
+        else
+            return toReplaced;
     }
 }

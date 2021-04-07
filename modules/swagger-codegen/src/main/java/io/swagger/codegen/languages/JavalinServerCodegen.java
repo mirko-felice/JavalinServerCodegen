@@ -68,6 +68,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         supportingFiles.add(new SupportingFile("presentation.mustache", utilsFolder, "Presentation.java"));
         supportingFiles.add(new SupportingFile("serializer.mustache", utilsFolder, "Serializer.java"));
         supportingFiles.add(new SupportingFile("deserializer.mustache", utilsFolder, "Deserializer.java"));
+        supportingFiles.add(new SupportingFile("javalinDeserializer.mustache", utilsFolder, "JavalinDeserializer.java"));
+        supportingFiles.add(new SupportingFile("utilities.mustache", utilsFolder, "Utilities.java"));
         supportingFiles.add(new SupportingFile("wrongExecutionSequenceException.mustache", utilsFolder, "WrongExecutionSequenceException.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");

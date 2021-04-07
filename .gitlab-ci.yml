@@ -1,0 +1,16 @@
+image: pikalab/ci:ubuntu-jdk14-git-gradle-graphviz
+
+before_script:
+  - chmod +x gradlew
+  - source $HOME/.sdkman/bin/sdkman-init.sh
+
+
+Compile:
+ stage: compile
+ script: 
+	- mvn clean package
+	- bin/javalin.sh
+
+Test:
+ stage: test
+ script: ./gradlew test
