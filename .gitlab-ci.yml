@@ -7,7 +7,7 @@ before_script:
 
 cache:
   paths:
-    - samples/
+    - samples/javalin/
 
 Compile:
   stage: build
@@ -18,6 +18,7 @@ Compile:
 Test:
   stage: test
   script:
+    - ls
     - cd samples/javalin
     - chmod +x gradlew
     - ./gradlew test
