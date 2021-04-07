@@ -15,4 +15,6 @@ java -jar ${executable} ${ags}
 
 cd samples/javalin
 
+chmod +x gradlew
+
 ./gradlew assemble
