@@ -2,6 +2,7 @@ image: pikalab/ci:ubuntu-jdk14-git-gradle-graphviz
 
 before_script:
   - chmod +x mvnw
+  - chmod +x bin/javalin.sh
   - source $HOME/.sdkman/bin/sdkman-init.sh
 
 Compile:
