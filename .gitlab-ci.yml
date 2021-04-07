@@ -14,5 +14,6 @@ Compile:
 Test:
   stage: test
   script:
+    - cd samples/javalin
     - chmod +x gradlew
     - ./gradlew test
