@@ -73,6 +73,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
         writeOptional(outputFolder, new SupportingFile("api_doc.mustache", "", "api_doc.md"));
+        writeOptional(outputFolder, new SupportingFile("model_doc.mustache", "", "model_doc.md"));
         writeOptional(outputFolder, new SupportingFile("build.gradle.kts.mustache", "", "build.gradle.kts"));
         //writeOptional(outputFolder, new SupportingFile("settings.gradle.mustache", "", "settings.gradle"));
         //writeOptional(outputFolder, new SupportingFile("gradle.properties.mustache", "", "gradle.properties"));
