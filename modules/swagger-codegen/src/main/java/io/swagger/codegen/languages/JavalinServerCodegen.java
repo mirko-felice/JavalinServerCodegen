@@ -337,8 +337,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public void preprocessSwagger(Swagger swagger) {
         super.preprocessSwagger(swagger);
-        for (Scheme scheme: swagger.getSchemes()){
-            this.schemes.add(scheme.toValue());
+        if (swagger.getSchemes() != null) {
+            for (Scheme scheme : swagger.getSchemes()) {
+                this.schemes.add(scheme.toValue());
+            }
+        } else {
+            this.schemes.add("http");
         }
     }
 
