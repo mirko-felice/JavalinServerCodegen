@@ -1,7 +1,8 @@
     {{#-first}}server.ws(this.basePath + "/{{baseName}}", ws -> {
             ws.onConnect(ctx -> System.out.println("Connected"));
             ws.onMessage(msgContext -> {
-                switch (msgContext.message()){ {{/-first}}
+                String request = msgContext.message().split(">:")[0];
+                switch (request){ {{/-first}}
                     case "{{httpMethod}}{{path}}" -> {{operationId}}(msgContext);{{#-last}}
                 }
             });

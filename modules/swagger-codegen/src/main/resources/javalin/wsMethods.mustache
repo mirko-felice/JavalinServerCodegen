@@ -17,6 +17,12 @@
     public void {{operationId}}(WsMessageContext context) {
 
         String message = context.message();
+        String request = message.split(">:")[0];
+        String requestMessage = "";
+        String[] parts = message.split(">:");
+        for (String el : parts)
+            requestMessage = requestMessage.concat(el);
+        String response = "";
         {{#pathParams}}{{#-last}}// Path params{{/-last}}{{/pathParams}}{{#pathParams}}
         {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}} = context.pathParam("{{baseName}}", {{dataType}}.class){{#minimum}}.check(i -> i >= {{minimum}}){{/minimum}}{{#maximum}}.check(i -> i <= {{maximum}}){{/maximum}}{{#minLength}}.check(s -> s.size() >= {{minLength}}){{/minLength}}{{#maxLength}}.check(s -> s.size() >= {{maxLength}}){{/maxLength}}.get();
         {{/pathParams}}
@@ -35,4 +41,7 @@
 
         //TODO Implement Behaviour
 
+
+        //Response
+        context.send(response);
     }
