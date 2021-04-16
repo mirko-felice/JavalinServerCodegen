@@ -3,17 +3,14 @@ package {{package}};
 import utils.*;
 {{#imports}}import {{import}};
 {{/imports}}
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.After;
+import org.junit.AfterClass;
 import java.net.URI;
 import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.util.function.Function;
-import java.util.*;
-
-import static org.mockito.Mockito.*;
+import java.util.regex.Pattern;
 
 /**
 * API tests for {{classname}}API
@@ -22,41 +19,39 @@ public class {{classname}}APITest {
 
     private static final String BASE_PATH = "{{basePathWithoutHost}}";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
+    private static final {{classname}}API API = new {{classname}}API(BASE_PATH);
+    private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
-    private final {{classname}}API api = new {{classname}}API(BASE_PATH);
     private String uri;
-    private Javalin server;
 
-    @Before
-    public void setUp() {
-        server = Javalin.create().start();
-        api.registerRoutes(server);
+    @BeforeClass
+    public static void setUp() {
+        API.registerRoutes(SERVER);
     }
 
-    @After
-    public void tearDown() {
-        server.stop();
+    @AfterClass
+    public static void tearDown() {
+        SERVER.stop();
     }
 {{#operations}}{{#operation}}
     /**
     * {{summary}}
     *
     * {{{notes}}}
-    *
     */
     @Test
     public void {{operationId}}Test() {
-    {{#allParams}}
-    {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
-    {{/allParams}}
+        {{#allParams}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
+        {{/allParams}}
 
-    uri = BASE_URI;
-    uri += replace("{{path}}");
+        uri = BASE_URI + "{{path}}"{{#pathParams}}.replaceFirst(Pattern.quote("{" + "{{paramName}}" + "}"), String.valueOf({{paramName}})){{/pathParams}}{{#queryParams}}.concat("{{#-first}}?{{/-first}}{{^-first}}&{{/-first}}" + "{{paramName}}" + "=" + String.valueOf({{paramName}})){{/queryParams}};
+        HttpRequest.Builder builder = createRequest();
+        {{#headerParams}}builder.header("{{paramName}}", String.valueOf({{paramName}}));{{/headerParams}}
+        HttpRequest request = {{#lowercase}}{{httpMethod}}{{/lowercase}}(builder /* TODO initialize params and uncomment ,{{#formParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/formParams}}{{#bodyParams}}{{paramName}}{{/bodyParams}}*/);
 
-    HttpRequest request = {{#lowercase}}{{httpMethod}}{{/lowercase}}();
-    {{#returnType}}CompletableFuture<{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}> response = {{/returnType}}sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
-
-    // TODO: test validations
+        CompletableFuture<{{#returnType}}{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}{{/returnType}}{{^returnType}}HttpResponse<String>{{/returnType}}> wrongResponse = sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
+        // TODO: test validations
 
     }
 {{/operation}}{{/operations}}
@@ -72,38 +67,42 @@ public class {{classname}}APITest {
             throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
     }
 
-    private HttpRequest get(){
+    private HttpRequest.Builder createRequest(){
         return HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .GET()
+                .uri(URI.create(this.uri));
+    }
+
+    private HttpRequest get(HttpRequest.Builder builder){
+        return builder.GET()
                 .build();
     }
 
-    private HttpRequest post(){
-        return HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .POST(BodyPublishers.ofString("test"))
+    private HttpRequest post(HttpRequest.Builder builder, Object object){
+        return builder.POST(BodyPublishers.ofString(Utilities.serializeOne(object)))
                 .build();
     }
 
-    private HttpRequest put(){
-        return HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .PUT(BodyPublishers.ofString("test"))
+    private HttpRequest post(HttpRequest.Builder builder, Object... objects){
+        var request = builder.header("Content-Type", "multipart/form-data");
+        for (Object o: objects)
+            request.POST(BodyPublishers.ofString(Utilities.serializeOne(o)));
+        return request.build();
+    }
+
+    private HttpRequest put(HttpRequest.Builder builder, Object object){
+        return builder.PUT(BodyPublishers.ofString(Utilities.serializeOne(object)))
                 .build();
     }
 
-    private HttpRequest delete(){
-        return HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .DELETE()
-                .build();
+    private HttpRequest put(HttpRequest.Builder builder, Object... objects){
+        var request = builder.header("Content-Type", "multipart/form-data");
+        for (Object o: objects)
+            request.PUT(BodyPublishers.ofString(Utilities.serializeOne(o)));
+        return request.build();
     }
 
-    private String replace(String toReplaced) {
-        if (toReplaced.contains("{"))
-            return toReplaced.replace("{", "?").replace("}", "") + "=test";
-        else
-            return toReplaced;
+    private HttpRequest delete(HttpRequest.Builder builder){
+        return builder.DELETE()
+                .build();
     }
 }

@@ -8,6 +8,11 @@ before_script:
 cache:
   paths:
     - samples/javalin/
+    - $HOME/.gradle/
+    - $HOME/.m2/
+    - gradle/
+    - .gradle/
+    - build/
 
 Compile:
   stage: build
@@ -18,7 +23,6 @@ Compile:
 Test:
   stage: test
   script:
-    - ls
     - cd samples/javalin
     - chmod +x gradlew
     - ./gradlew test

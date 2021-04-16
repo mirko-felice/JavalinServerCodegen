@@ -10,32 +10,24 @@ public class Utilities {
     private Utilities(){ }
 
     public static String responseChecker(HttpResponse<String> response) {
-    if (response.statusCode() == 200)
-        return response.body();
-    else
-        throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
+        if (response.statusCode() == 200)
+            return response.body();
+        else
+            throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
     }
 
     public static <T> Function<String, CompletableFuture<T>> deserializeOne(Class<T> klass) {
         return toBeDeserialized -> {
             var promise = new CompletableFuture<T>();
-            try {
-                promise.complete(JavalinDeserializer.deserializeOne(toBeDeserialized, klass));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
+            promise.complete(JavalinDeserializer.deserializeOne(toBeDeserialized, klass));
             return promise;
-            };
-        }
+        };
+    }
 
     public static <T> Function<String, CompletableFuture<List<T>>> deserializeMany(Class<T> klass) {
         return toBeDeserialized -> {
             var promise = new CompletableFuture<List<T>>();
-            try {
-                promise.complete(JavalinDeserializer.deserializeMany(toBeDeserialized, klass));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
+            promise.complete(JavalinDeserializer.deserializeMany(toBeDeserialized, klass));
             return promise;
         };
     }
@@ -43,12 +35,12 @@ public class Utilities {
     public static <T> Function<String, CompletableFuture<Map<String,T>>> deserializeMap(Class<T> klass) {
         return toBeDeserialized -> {
            var promise = new CompletableFuture<Map<String, T>>();
-           try {
-               promise.complete(JavalinDeserializer.deserializeMap(toBeDeserialized, klass));
-           } catch (PresentationException e) {
-               promise.completeExceptionally(new RemoteException(e));
-           }
-        return promise;
+           promise.complete(JavalinDeserializer.deserializeMap(toBeDeserialized, klass));
+           return promise;
         };
+    }
+
+    public static <T> String serializeOne(T object) {
+        return JavalinSerializer.serializeOne(object);
     }
 }

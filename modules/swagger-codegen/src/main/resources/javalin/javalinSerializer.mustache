@@ -1,0 +1,14 @@
+package utils;
+
+import java.util.*;
+import org.json.*;
+import io.javalin.plugin.json.JavalinJson;
+
+public class JavalinSerializer {
+
+    private JavalinSerializer(){ }
+
+    public static String serializeOne(Object toBeSerialized) {
+        return JavalinJson.toJson(toBeSerialized);
+    }
+}
