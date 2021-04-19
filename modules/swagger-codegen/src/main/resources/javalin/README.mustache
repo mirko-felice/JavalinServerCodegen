@@ -18,18 +18,17 @@ Building the server API stub requires:
 
 ## Getting Started
 
-To start the server run the main file located in {{sourceFolder}} which will start the javalin server on {{host}}
+To start the server run the main file located in main folder which will start the javalin server on {{host}}
 
 ## Documentation for API
 
-All URIs are relative to *{{basePath}}*
-
-{{#apiInfo}}{{#apis}}{{#operations}}{{#operation}}*{{classname}}* -> {{apiDocPath}}{{classname}}.md | {{#description}}{{description}}{{/description}}
-{{/operation}}{{/operations}}{{/apis}}{{/apiInfo}}
+{{#apiInfo}}{{#apis}}
+*{{classname}}* -> {{apiDocPath}}{{classname}}.md {{#description}}| {{description}}{{/description}}
+{{/apis}}{{/apiInfo}}
 
 ## Documentation for Model
-
-{{#models}}{{#model}}*{{classname}}* -> {{modelDocPath}}{{classname}}.md
+{{#models}}{{#model}}
+*{{classname}}* -> {{modelDocPath}}{{classname}}.md
 {{/model}}{{/models}}
 
 ## Documentation for Authorization
@@ -53,10 +52,6 @@ All URIs are relative to *{{basePath}}*
 {{/isOAuth}}
 
 {{/authMethods}}
-
-## Recommendation
-
-It's recommended to create an instance of `ApiClient` per thread in a multithreaded environment to avoid any potential issues.
 
 ## Author
 

@@ -16,6 +16,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     protected String projectTestFolder = "src" + File.separator + "test";
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String testFolder = projectTestFolder + File.separator + "java";
+    protected String apiDocFileFolder = "doc" + File.separator + "API";
+    protected String modelDocFileFolder = "doc" + File.separator + "model";
     protected String gradleWrapperPackage = "gradle.wrapper";
     protected List<String> schemes = new ArrayList<>();
 
@@ -72,7 +74,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
-        writeOptional(outputFolder, new SupportingFile("api_doc.mustache", "", "api_doc.md"));
         writeOptional(outputFolder, new SupportingFile("model_doc.mustache", "", "model_doc.md"));
         writeOptional(outputFolder, new SupportingFile("build.gradle.kts.mustache", "", "build.gradle.kts"));
         //writeOptional(outputFolder, new SupportingFile("settings.gradle.mustache", "", "settings.gradle"));
@@ -91,6 +92,17 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         supportingFiles.add(new SupportingFile("auth/OAuth.mustache", authFolder, "OAuth.java"));
         supportingFiles.add(new SupportingFile("auth/OAuthFlow.mustache", authFolder, "OAuthFlow.java"));
         supportingFiles.add(new SupportingFile("auth/Pair.mustache", authFolder, "Pair.java"));
+        apiDocTemplateFiles.put("api_doc.mustache", ".md");
+    }
+
+    @Override
+    public String apiDocFileFolder() {
+        return super.apiDocFileFolder() + File.separator + apiDocFileFolder;
+    }
+
+    @Override
+    public String modelDocFileFolder() {
+        return super.modelDocFileFolder() + File.separator + modelDocFileFolder;
     }
 
     @Override

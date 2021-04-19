@@ -1,35 +1,89 @@
-## General
+# {{classname}}{{#description}}
+{{description}}{{/description}}
 
-Each api generated contains base implementation which includes:
+All URIs are relative to *{{basePath}}*
+{{#operations}}{{#operation}}{{#hasHttpScheme}}{{#-first}}
+## HTTP Interaction
+Method [**path**] | Description
+{{/-first}}
 
-1) Registration of all specified routes. The routes will be created for the schemes specified globally.
-For *http/https* schemes will be created a route for each path.
-For *ws/wss* schemes will be created a single WebSocket routing for the path defined by the baseName value. Each message received (unless changed) MUST begin with the specified path, followed by '>:' that is needed to recognise the request made by the client.
-Because WebSocket can communicate only by messages if some routes need the sending of files that are not plain text, it is provided the receiving of binary messages that must be managed and implemented by the user.
+*{{operationId}}* ---> {{httpMethod}} [**{{path}}**] | {{#summary}}{{summary}}{{/summary}}
+{{/hasHttpScheme}}{{/operation}}{{/operations}}
 
-If no GLOBAL scheme was specified the stub will contain ONLY *http* routes and respective methods.
+{{#operations}}{{#operation}}
+{{#hasHttpScheme}}
+### {{operationId}} {{#isDeprecated}} (Deprecated) {{/isDeprecated}}
 
-2) For each http/https route a method containing code that extracts data sent by the client. The data extracted include:
-    - Files;
-    - Consumes //TOCOMPLETE;
-    - Information needed to authenticate the user for this path;
-    - Path parameters;
-    - Query parameters;
-    - Form parameters;
-    - Headers of the request;
-    - Body of the request;
-    - Behaviour (this is NOT implemented);
+{{#summary}}**Summary**: {{summary}}{{/summary}}
 
-At the end is available the behaviour for each response available for the path, basing on the code set by the behaviour which corresponds to the response code of the server.
+{{#pathParams}}{{#-first}}
+**Path params**:
+{{/-first}}
 
-3) For each ws/wss route a method containing code that extracts data sent by the client. Till WebSocket interface can send only messages the amount of information extracted is less:
-    - Message sent;
-    - Path parameters;
-    - Query parameter;
-    - Headers;
+ - *{{baseName}}*: {{{description}}}
+{{/pathParams}}{{#queryParams}}{{#-first}}
+**Query params**:
+{{/-first}}
 
-At the end the response is sent back to the client.
+ - *{{baseName}}*: {{{description}}}
+{{/queryParams}}
+{{#formParams}}{{#-first}}
+**Form params**:
+{{/-first}}
 
-## TODO
+ - *{{baseName}}*: {{{description}}}
+{{/formParams}}
+{{#headerParams}}{{#-first}}
+**Header params**:
+{{/-first}}
 
-In each method relative to a path must be implemented the behaviour that the server must have in response to the request of the client.
+ - *{{baseName}}*: {{{description}}}
+{{/headerParams}}
+{{#bodyParam}}
+
+**Body**: {{{description}}}
+{{/bodyParam}}
+
+{{#notes}}**Notes**: {{notes}}{{/notes}}
+{{/hasHttpScheme}}{{/operation}}{{/operations}}
+
+{{#operations}}{{#operation}}{{#-first}}
+{{#hasWSScheme}}
+## WS Interaction:
+
+Web socket connection for {{classname}} is available on **/{{baseName}}**
+
+WebSocket interaction requires sending of a message containing the PATH followed by additional data if needed
+
+All files must be sent as *Binary Message*
+{{/hasWSScheme}}{{/-first}}{{/operation}}{{/operations}}
+
+{{#operations}}{{#operation}}
+{{#hasWSScheme}}
+### {{operationId}} {{#isDeprecated}} (Deprecated) {{/isDeprecated}}
+
+**Message**: {{httpMethod}}{{path}}>:[message]
+
+{{#summary}}**Summary**: {{summary}}{{/summary}}
+
+{{#pathParams}}{{#-first}}
+**Path params**:
+{{/-first}}
+
+ - *{{baseName}}*: {{{description}}}
+{{/pathParams}}
+{{#queryParams}}{{#-first}}
+**Query params**:
+{{/-first}}
+
+ - *{{baseName}}*: {{{description}}}
+{{/queryParams}}
+{{#headerParams}}{{#-first}}
+**Header params**:
+{{/-first}}
+
+ - *{{baseName}}*: {{{description}}}
+{{/headerParams}}
+
+{{#notes}}**Notes**: {{notes}}{{/notes}}
+{{/hasWSScheme}}{{/operation}}{{/operations}}
