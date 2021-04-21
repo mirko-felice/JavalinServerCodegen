@@ -3,85 +3,87 @@ package {{package}};
 import utils.*;
 {{#imports}}import {{import}};
 {{/imports}}
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.After;
+import org.junit.AfterClass;
 import java.net.URI;
 import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.util.function.Function;
-import java.util.*;
+import java.util.regex.Pattern;
+import java.util.concurrent.CompletionStage;
+import java.nio.ByteBuffer;
 
 /**
 * API tests for {{classname}}API
 */
 public class {{classname}}APITest {
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final String basePath = "{{basePathWithoutHost}}";
-    private final {{classname}}API api = new {{classname}}API(basePath);
-    private Javalin server;
 
-    @Before
-    public void setUp() {
-        server = Javalin.create().start();
-        api.registerRoutes(server);
+    private static final String BASE_PATH = "{{basePathWithoutHost}}";
+    private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
+    private static final {{classname}}API API = new {{classname}}API(BASE_PATH);
+    private static final Javalin SERVER = Javalin.create().start();
+    private final HttpClient client = HttpClient.newHttpClient();
+    private String uri;
+
+    @BeforeClass
+    public static void setUp() {
+        API.registerRoutes(SERVER);
     }
 
-    @After
-    public void tearDown() {
-        server.stop();
+    @AfterClass
+    public static void tearDown() {
+        SERVER.stop();
     }
 {{#operations}}{{#operation}}
     /**
     * {{summary}}
     *
     * {{{notes}}}
-    *
-    * @throws ApiException
-    *          if the Api call fails
     */
     @Test
-    public void {{operationId}}Test() throws ApiException {
-    {{#allParams}}
-    {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
-    {{/allParams}}
-    String uri = "http://localhost:7000" + basePath;
-    if ("{{path}}".contains("{"))
-        uri += "{{path}}".replace("{", "?").replace("}", "") + "=test";
-    else
-        uri += "{{path}}";
-    HttpRequest request = null;
-    switch ("{{#uppercase}}{{httpMethod}}{{/uppercase}}") {
-        case "GET":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .GET()
-                        .build();
-            break;
-        case "POST":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .POST(BodyPublishers.ofString("test"))
-                        .build();
-            break;
-        case "PUT":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .PUT(BodyPublishers.ofString("test"))
-                        .build();
-            break;
-        case "DELETE":
-            request = HttpRequest.newBuilder()
-                        .uri(URI.create(uri))
-                        .DELETE()
-                        .build();
-            break;
-        default:
-    }
-    {{#returnType}}CompletableFuture<{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}> response = {{/returnType}}sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
+    public void {{operationId}}Test() {
+        {{#allParams}}
+        {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{paramName}} = null;
+        {{/allParams}}
 
-    // TODO: test validations
+        uri = BASE_URI + "{{path}}"{{#pathParams}}.replaceFirst(Pattern.quote("{" + "{{paramName}}" + "}"), String.valueOf({{paramName}})){{/pathParams}}{{#queryParams}}.concat("{{#-first}}?{{/-first}}{{^-first}}&{{/-first}}" + "{{paramName}}" + "=" + String.valueOf({{paramName}})){{/queryParams}};
+        HttpRequest.Builder builder = createRequest(){{#hasConsumes}}.header("Content-Type", "{{#consumes}}{{mediaType}}{{#hasMore}};{{/hasMore}}{{/consumes}}"){{/hasConsumes}};
+        {{#headerParams}}builder.header("{{paramName}}", String.valueOf({{paramName}}));{{/headerParams}}
+        {{#authMethods}}{{#isKeyInHeader}}builder.header("{{name}}", "");{{/isKeyInHeader}}{{/authMethods}}
+        HttpRequest request = {{#lowercase}}{{httpMethod}}{{/lowercase}}(builder /* TODO initialize params and uncomment ,{{#formParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/formParams}}{{#bodyParams}}{{paramName}}{{/bodyParams}}*/);
+
+        CompletableFuture<{{#returnType}}{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}{{/returnType}}{{^returnType}}HttpResponse<String>{{/returnType}}> response = sendAsync(request){{#returnType}}.thenApply(Utilities::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map(String.class, {{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
+        // TODO: test validations
+
+        {{#hasWSScheme}}
+        uri = BASE_URI + "/{{baseName}}";
+
+        WebSocket.Listener listener = new WebSocket.Listener() {
+            @Override
+            public void onOpen(WebSocket webSocket) {}
+
+            @Override
+            public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                return null;
+            }
+
+            @Override
+            public void onError(WebSocket webSocket, Throwable error) { }
+            };
+
+        CompletableFuture<WebSocket> webSocket = client.newWebSocketBuilder().buildAsync(URI.create(uri), listener);
+        {{/hasWSScheme}}
 
     }
 {{/operation}}{{/operations}}
@@ -90,49 +92,37 @@ public class {{classname}}APITest {
         return client.sendAsync(request, BodyHandlers.ofString());
     }
 
-    private String responseChecker(HttpResponse<String> response) {
-        if (response.statusCode() == 200)
-            return response.body();
-        else
-            throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
+    private HttpRequest.Builder createRequest(){
+        return HttpRequest.newBuilder().uri(URI.create(this.uri));
     }
 
-    private static <T> Function<String, CompletableFuture<T>> deserializeOne(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<T>();
-            try {
-                promise.complete(deserializer.deserialize(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest get(HttpRequest.Builder builder){
+        return builder.GET().build();
     }
 
-    private static <T> Function<String, CompletableFuture<List<T>>> deserializeMany(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<List<T>>();
-            try {
-                promise.complete(deserializer.deserializeMany(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest post(HttpRequest.Builder builder, Object object){
+        return builder.POST(BodyPublishers.ofString(object instanceof List ? Utilities.serializeMany((List<?>) object) : object instanceof Map ? Utilities.serializeMap((Map<?,?>)object) : Utilities.serializeOne(object))).build();
     }
 
-    private static <T> Function<String, CompletableFuture<Map<String,T>>> deserializeMap(Class<T> klass) {
-        var deserializer = Presentation.deserializerOf(klass);
-        return toBeDeserialized -> {
-            var promise = new CompletableFuture<Map<String, T>>();
-            try {
-                promise.complete(deserializer.deserializeMap(toBeDeserialized));
-            } catch (PresentationException e) {
-                promise.completeExceptionally(new RemoteException(e));
-            }
-            return promise;
-        };
+    private HttpRequest post(HttpRequest.Builder builder, Object... objects){
+        var request = builder.header("Content-Type", "multipart/form-data");
+        for (Object o: objects)
+            request.POST(BodyPublishers.ofString(Utilities.serializeOne(o)));
+        return request.build();
+    }
+
+    private HttpRequest put(HttpRequest.Builder builder, Object object){
+        return builder.PUT(BodyPublishers.ofString(object instanceof List ? Utilities.serializeMany((List<?>) object) : object instanceof Map ? Utilities.serializeMap((Map<?,?>)object) : Utilities.serializeOne(object))).build();
+    }
+
+    private HttpRequest put(HttpRequest.Builder builder, Object... objects){
+        var request = builder.header("Content-Type", "multipart/form-data");
+        for (Object o: objects)
+            request.PUT(BodyPublishers.ofString(Utilities.serializeOne(o)));
+        return request.build();
+    }
+
+    private HttpRequest delete(HttpRequest.Builder builder){
+        return builder.DELETE().build();
     }
 }

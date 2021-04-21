@@ -28,6 +28,8 @@ public class {{classname}} {
     private {{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}} {{baseName}};{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}> {{baseName}};{{/isContainer}}
     {{/vars}}
 
+    public {{name}}() { }
+
     public {{name}}({{#isAlias}}{{{dataType}}} {{classVarName}}{{/isAlias}}{{#vars}}{{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}){
         {{#isAlias}}this.{{classVarName}} = {{classVarName}} == null ? {{defaultValue}} : {{classVarName}};
         {{/isAlias}}{{#vars}}this.{{baseName}} = {{baseName}} == null ? {{defaultValue}} : {{baseName}};{{#hasMore}}

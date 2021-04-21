@@ -62,13 +62,10 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
         supportingFiles.add(new SupportingFile("main.mustache", sourceFolder, "Main.java"));
         String utilsFolder = sourceFolder + File.separator + "utils";
-        supportingFiles.add(new SupportingFile("apiException.mustache", utilsFolder, "ApiException.java"));
         supportingFiles.add(new SupportingFile("remoteException.mustache", utilsFolder, "RemoteException.java"));
-        supportingFiles.add(new SupportingFile("presentationException.mustache", utilsFolder, "PresentationException.java"));
-        supportingFiles.add(new SupportingFile("presentation.mustache", utilsFolder, "Presentation.java"));
-        supportingFiles.add(new SupportingFile("serializer.mustache", utilsFolder, "Serializer.java"));
-        supportingFiles.add(new SupportingFile("deserializer.mustache", utilsFolder, "Deserializer.java"));
-        supportingFiles.add(new SupportingFile("wrongExecutionSequenceException.mustache", utilsFolder, "WrongExecutionSequenceException.java"));
+        supportingFiles.add(new SupportingFile("javalinDeserializer.mustache", utilsFolder, "JavalinDeserializer.java"));
+        supportingFiles.add(new SupportingFile("javalinSerializer.mustache", utilsFolder, "JavalinSerializer.java"));
+        supportingFiles.add(new SupportingFile("utilities.mustache", utilsFolder, "Utilities.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -81,14 +78,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.properties") );
         supportingFiles.add(new SupportingFile( "gradle-wrapper.jar",
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.jar") );
-
-        String authFolder = sourceFolder + File.separator + "auth";
-        supportingFiles.add(new SupportingFile("auth/Authentication.mustache", authFolder, "Authentication.java"));
-        supportingFiles.add(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
-        supportingFiles.add(new SupportingFile("auth/ApiKeyAuth.mustache", authFolder, "ApiKeyAuth.java"));
-        supportingFiles.add(new SupportingFile("auth/OAuth.mustache", authFolder, "OAuth.java"));
-        supportingFiles.add(new SupportingFile("auth/OAuthFlow.mustache", authFolder, "OAuthFlow.java"));
-        supportingFiles.add(new SupportingFile("auth/Pair.mustache", authFolder, "Pair.java"));
     }
 
     @Override
@@ -108,7 +97,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("BadRequest", "io.javalin.http.BadRequestResponse");
         importMapping.put("JavalinJson", "io.javalin.plugin.json.JavalinJson");
         importMapping.put("WSContext", "io.javalin.websocket.WsMessageContext");
-        importMapping.put("WrongExecutionSequence", "utils.WrongExecutionSequenceException");
         importMapping.put("JSONArray", "org.json.JSONArray");
         additionalProperties.put("lowercase", new LowercaseLambda());
         additionalProperties.put("uppercase", new UppercaseLambda());
@@ -276,17 +264,11 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 codegenOperation.imports.add("Map");
             if (codegenOperation.responses.stream().anyMatch(r -> r.isListContainer))
                 codegenOperation.imports.add("List");
-            if (codegenOperation.responses.stream().anyMatch(r -> r.dataType != null))
-                codegenOperation.imports.add("WrongExecutionSequence");
         }
         if (codegenOperation.hasConsumes)
             codegenOperation.imports.add("BadRequest");
         if (codegenOperation.bodyParam != null && codegenOperation.bodyParam.isContainer)
             codegenOperation.imports.addAll(Arrays.asList("JavalinJson", "JSONArray"));
-        codegenOperation.allParams.stream().filter(p -> p.isEnum).forEach(codegenParameter -> {
-            /*importMapping.put("", String.format("%s.%s.%s", modelPackage, c codegenParameter.enumName));
-            codegenOperation.imports.add("");*/
-        });
         return codegenOperation;
     }
 

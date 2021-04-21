@@ -17,7 +17,8 @@
     * {{/headerParams}}
     */{{#isDeprecated}}
     @Deprecated{{/isDeprecated}}
-    public void {{operationId}}(Context context) {{#responses}}{{#dataType}}throws WrongExecutionSequenceException {{/dataType}}{{/responses}}{
+    public void {{operationId}}(Context context) {
+        int code = 200;
         {{#allParams}}{{#isFile}}final String {{baseName}}Path = ""; // TODO set uploadFilePath{{/isFile}}{{/allParams}}
         {{#hasConsumes}}// Check request content type
         String contentType = context.contentType();
@@ -73,17 +74,13 @@
         {{#responses}}
         {{#dataType}}
         CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}> result = new CompletableFuture<>();
-        if (!this.isCodeSet)
-            throw new WrongExecutionSequenceException("Code not set!");
-        this.isCodeSet = false;
         {{/dataType}}{{/responses}}
 
-        switch (this.code) {
+        switch (code) {
             {{#responses}}{{^isDefault}}case {{code}} -> {
-                {{#dataType}}context.result(result);{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}
+                {{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}
                 context.status({{code}});
             }{{/isDefault}}
-            {{/responses}}default -> { {{#responses}}{{#isDefault}}context.result("{{{message}}}");{{/isDefault}}{{/responses}} }
+            {{/responses}}default -> { {{#responses}}{{#isDefault}}{{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}{{/isDefault}}{{/responses}} }
         }
-        this.isCodeSet = false;
     }

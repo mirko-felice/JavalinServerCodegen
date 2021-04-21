@@ -3,19 +3,14 @@ package {{package}};
 
 {{#imports}}import {{import}};
 {{/imports}}
-{{#operations}}{{#operation}}{{#authMethods}}{{^isOAuth}}import io.javalin.http.UnauthorizedResponse;{{/isOAuth}}
-{{#isOAuth}}import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashMap;{{/isOAuth}}{{/authMethods}}{{/operation}}{{/operations}}
 {{#operations}}{{#operation}}{{#allParams}}{{#isEnum}}
 import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/operation}}{{/operations}}
+import utils.Utilities;
+import io.javalin.http.UnauthorizedResponse;
 
 public class {{classname}}API {
 
     private final String basePath;
-    private int code;
-    private boolean isCodeSet = false;
 
     public {{classname}}API(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
@@ -39,9 +34,4 @@ public class {{classname}}API {
 {{#hasWSScheme}}{{>wsMethods}}{{/hasWSScheme}}
     {{/operation}}
     {{/operations}}
-
-    public final void setCode(int code) {
-        this.code = code;
-        this.isCodeSet = true;
-    }
 }
