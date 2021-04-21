@@ -11,6 +11,8 @@ import java.net.http.*;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.util.regex.Pattern;
+import java.util.concurrent.CompletionStage;
+import java.nio.ByteBuffer;
 
 /**
 * API tests for {{classname}}API
@@ -46,12 +48,42 @@ public class {{classname}}APITest {
         {{/allParams}}
 
         uri = BASE_URI + "{{path}}"{{#pathParams}}.replaceFirst(Pattern.quote("{" + "{{paramName}}" + "}"), String.valueOf({{paramName}})){{/pathParams}}{{#queryParams}}.concat("{{#-first}}?{{/-first}}{{^-first}}&{{/-first}}" + "{{paramName}}" + "=" + String.valueOf({{paramName}})){{/queryParams}};
-        HttpRequest.Builder builder = createRequest();
+        HttpRequest.Builder builder = createRequest(){{#hasConsumes}}.header("Content-Type", "{{#consumes}}{{mediaType}}{{#hasMore}};{{/hasMore}}{{/consumes}}"){{/hasConsumes}};
         {{#headerParams}}builder.header("{{paramName}}", String.valueOf({{paramName}}));{{/headerParams}}
+        {{#authMethods}}{{#isKeyInHeader}}builder.header("{{name}}", "");{{/isKeyInHeader}}{{/authMethods}}
         HttpRequest request = {{#lowercase}}{{httpMethod}}{{/lowercase}}(builder /* TODO initialize params and uncomment ,{{#formParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/formParams}}{{#bodyParams}}{{paramName}}{{/bodyParams}}*/);
 
-        CompletableFuture<{{#returnType}}{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}{{/returnType}}{{^returnType}}HttpResponse<String>{{/returnType}}> wrongResponse = sendAsync(request){{#returnType}}.thenApply(this::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map({{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
+        CompletableFuture<{{#returnType}}{{returnType}}{{#isListContainer}}<{{returnBaseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{returnBaseType}}>{{/isMapContainer}}{{/returnType}}{{^returnType}}HttpResponse<String>{{/returnType}}> response = sendAsync(request){{#returnType}}.thenApply(Utilities::responseChecker).thenCompose(Utilities.deserialize{{#isMapContainer}}Map(String.class, {{returnBaseType}}.class)){{/isMapContainer}}{{^isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}One{{/isListContainer}}({{returnBaseType}}.class)){{/isMapContainer}}{{/returnType}};
         // TODO: test validations
+
+        {{#hasWSScheme}}
+        uri = BASE_URI + "/{{baseName}}";
+
+        WebSocket.Listener listener = new WebSocket.Listener() {
+            @Override
+            public void onOpen(WebSocket webSocket) {}
+
+            @Override
+            public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
+                return null;
+            }
+
+            @Override
+            public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                return null;
+            }
+
+            @Override
+            public void onError(WebSocket webSocket, Throwable error) { }
+            };
+
+        CompletableFuture<WebSocket> webSocket = client.newWebSocketBuilder().buildAsync(URI.create(uri), listener);
+        {{/hasWSScheme}}
 
     }
 {{/operation}}{{/operations}}
@@ -60,26 +92,16 @@ public class {{classname}}APITest {
         return client.sendAsync(request, BodyHandlers.ofString());
     }
 
-    private String responseChecker(HttpResponse<String> response) {
-        if (response.statusCode() == 200)
-            return response.body();
-        else
-            throw new RemoteException(String.format("Unexpected response while %s %s: %d", response.request().method(), response.uri(), response.statusCode()));
-    }
-
     private HttpRequest.Builder createRequest(){
-        return HttpRequest.newBuilder()
-                .uri(URI.create(this.uri));
+        return HttpRequest.newBuilder().uri(URI.create(this.uri));
     }
 
     private HttpRequest get(HttpRequest.Builder builder){
-        return builder.GET()
-                .build();
+        return builder.GET().build();
     }
 
     private HttpRequest post(HttpRequest.Builder builder, Object object){
-        return builder.POST(BodyPublishers.ofString(Utilities.serializeOne(object)))
-                .build();
+        return builder.POST(BodyPublishers.ofString(object instanceof List ? Utilities.serializeMany((List<?>) object) : object instanceof Map ? Utilities.serializeMap((Map<?,?>)object) : Utilities.serializeOne(object))).build();
     }
 
     private HttpRequest post(HttpRequest.Builder builder, Object... objects){
@@ -90,8 +112,7 @@ public class {{classname}}APITest {
     }
 
     private HttpRequest put(HttpRequest.Builder builder, Object object){
-        return builder.PUT(BodyPublishers.ofString(Utilities.serializeOne(object)))
-                .build();
+        return builder.PUT(BodyPublishers.ofString(object instanceof List ? Utilities.serializeMany((List<?>) object) : object instanceof Map ? Utilities.serializeMap((Map<?,?>)object) : Utilities.serializeOne(object))).build();
     }
 
     private HttpRequest put(HttpRequest.Builder builder, Object... objects){
@@ -102,7 +123,6 @@ public class {{classname}}APITest {
     }
 
     private HttpRequest delete(HttpRequest.Builder builder){
-        return builder.DELETE()
-                .build();
+        return builder.DELETE().build();
     }
 }

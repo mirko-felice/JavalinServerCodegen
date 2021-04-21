@@ -66,7 +66,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         supportingFiles.add(new SupportingFile("javalinDeserializer.mustache", utilsFolder, "JavalinDeserializer.java"));
         supportingFiles.add(new SupportingFile("javalinSerializer.mustache", utilsFolder, "JavalinSerializer.java"));
         supportingFiles.add(new SupportingFile("utilities.mustache", utilsFolder, "Utilities.java"));
-        supportingFiles.add(new SupportingFile("wrongExecutionSequenceException.mustache", utilsFolder, "WrongExecutionSequenceException.java"));
         modelPackage = "model";
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
@@ -98,7 +97,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         importMapping.put("BadRequest", "io.javalin.http.BadRequestResponse");
         importMapping.put("JavalinJson", "io.javalin.plugin.json.JavalinJson");
         importMapping.put("WSContext", "io.javalin.websocket.WsMessageContext");
-        importMapping.put("WrongExecutionSequence", "utils.WrongExecutionSequenceException");
         importMapping.put("JSONArray", "org.json.JSONArray");
         additionalProperties.put("lowercase", new LowercaseLambda());
         additionalProperties.put("uppercase", new UppercaseLambda());
@@ -266,8 +264,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 codegenOperation.imports.add("Map");
             if (codegenOperation.responses.stream().anyMatch(r -> r.isListContainer))
                 codegenOperation.imports.add("List");
-            if (codegenOperation.responses.stream().anyMatch(r -> r.dataType != null))
-                codegenOperation.imports.add("WrongExecutionSequence");
         }
         if (codegenOperation.hasConsumes)
             codegenOperation.imports.add("BadRequest");

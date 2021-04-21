@@ -32,15 +32,23 @@ public class Utilities {
         };
     }
 
-    public static <T> Function<String, CompletableFuture<Map<String,T>>> deserializeMap(Class<T> klass) {
+    public static <U,T> Function<String, CompletableFuture<Map<U,T>>> deserializeMap(Class<U> klassU, Class<T> klassT) {
         return toBeDeserialized -> {
-           var promise = new CompletableFuture<Map<String, T>>();
-           promise.complete(JavalinDeserializer.deserializeMap(toBeDeserialized, klass));
+           var promise = new CompletableFuture<Map<U, T>>();
+           promise.complete(JavalinDeserializer.deserializeMap(toBeDeserialized, klassU, klassT));
            return promise;
         };
     }
 
     public static <T> String serializeOne(T object) {
         return JavalinSerializer.serializeOne(object);
+    }
+
+    public static <T> String serializeMany(List<T> objects) {
+        return JavalinSerializer.serializeMany(objects);
+    }
+
+    public static <U,T> String serializeMap(Map<U,T> map) {
+        return JavalinSerializer.serializeMap(map);
     }
 }
