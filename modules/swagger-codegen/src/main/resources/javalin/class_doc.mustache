@@ -1,0 +1,16 @@
+# {{classname}}
+{{#vars}}{{#isEnum}}{{^isContainer}}{{>enum_doc}}
+{{/isContainer}}{{/isEnum}}
+{{#items.isEnum}}{{#items}}{{#isContainer}}{{>enum_doc}}
+{{/isContainer}}{{/items}}{{/items.isEnum}}{{/vars}}
+
+## Fields:
+
+Name | Type | Description
+---------- | ---------- | ----------
+{{#isAlias}}
+{{classVarName}} | {{{dataType}}}{{#isListContainer}}\<{{baseType}}>{{/isListContainer}} | {{unescapedDescription}}
+{{/isAlias}}
+{{#vars}}
+{{baseName}} | {{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}\<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} | {{unescapedDescription}}
+{{/vars}}

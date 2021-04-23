@@ -1,14 +1,1 @@
-## Structure
-
-The model has different structures depending on that if the model is a class or an enumeration.
-
-If the model is an enumeration it contains:
-    - All its possible values;
-    - Methods to create a variable of this enumeration and methods to obtain the value of an element of this enumeration and the string corresponding to the value
-
-If the model is a class it contains:
-    - Inner enumeration (with the same structure as specified before) if some variables have enumeration types;
-    - All variables of the model represented by the "fields" of this class;
-    - Constructor;
-    - For each variable its setter and getter methods;
-    - toString, equals and hashCode methods;
+{{#models}}{{#model}}{{#isEnum}}{{>enum_doc}}{{/isEnum}}{{^isEnum}}{{>class_doc}}{{/isEnum}}{{/model}}{{/models}}
