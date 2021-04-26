@@ -70,6 +70,8 @@
             {{baseType}} element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), {{baseType}}.class);
         }{{/isContainer}}{{/bodyParam}}
 
+        //TODO Implement Behaviour
+
         context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
         {{#responses}}
         {{#dataType}}

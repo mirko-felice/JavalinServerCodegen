@@ -16,6 +16,8 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     protected String projectTestFolder = "src" + File.separator + "test";
     protected String sourceFolder = projectFolder + File.separator + "java";
     protected String testFolder = projectTestFolder + File.separator + "java";
+    protected String apiDocFileFolder = "doc" + File.separator + "API";
+    protected String modelDocFileFolder = "doc" + File.separator + "model";
     protected String gradleWrapperPackage = "gradle.wrapper";
     protected List<String> schemes = new ArrayList<>();
 
@@ -78,6 +80,19 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.properties") );
         supportingFiles.add(new SupportingFile( "gradle-wrapper.jar",
                 gradleWrapperPackage.replace( ".", File.separator ), "gradle-wrapper.jar") );
+
+        apiDocTemplateFiles.put("api_doc.mustache", ".md");
+        modelDocTemplateFiles.put("model_doc.mustache", ".md");
+    }
+
+    @Override
+    public String apiDocFileFolder() {
+        return super.apiDocFileFolder() + File.separator + apiDocFileFolder;
+    }
+
+    @Override
+    public String modelDocFileFolder() {
+        return super.modelDocFileFolder() + File.separator + modelDocFileFolder;
     }
 
     @Override
@@ -319,8 +334,12 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
     @Override
     public void preprocessSwagger(Swagger swagger) {
         super.preprocessSwagger(swagger);
-        for (Scheme scheme: swagger.getSchemes()){
-            this.schemes.add(scheme.toValue());
+        if (swagger.getSchemes() != null) {
+            for (Scheme scheme : swagger.getSchemes()) {
+                this.schemes.add(scheme.toValue());
+            }
+        } else {
+            this.schemes.add("http");
         }
     }
 

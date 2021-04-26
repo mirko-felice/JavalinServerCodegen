@@ -1,0 +1,80 @@
+# {{classname}}{{#description}}
+{{description}}{{/description}}
+
+All URIs are relative to *{{basePath}}*
+{{#operations}}{{#operation}}{{#hasHttpScheme}}{{#-first}}
+## HTTP Interaction
+Operation | HTTP Method | **path** | Description
+------------- | ------------- | ------------- | -------------
+{{/-first}}*{{operationId}}* | {{httpMethod}} | **{{path}}** | {{#summary}}{{summary}}{{/summary}}
+{{/hasHttpScheme}}{{/operation}}{{/operations}}
+
+{{#operations}}{{#operation}}
+{{#hasHttpScheme}}
+## **{{operationId}}** {{#isDeprecated}} (Deprecated) {{/isDeprecated}}
+
+### {{#summary}}Summary
+{{summary}}{{/summary}}
+
+### Parameters
+
+Param type | Name | Type | Description | Notes
+------------- | ------------- | ------------- | ------------- | -------------
+{{#pathParams}}Path | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/pathParams}}{{#queryParams}}Query | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/queryParams}}{{#formParams}}Form | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/formParams}}{{#headerParams}}Header | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/headerParams}}{{#bodyParam}}Body | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/bodyParam}}
+
+### Return type
+
+{{#returnType}}{{#returnTypeIsPrimitive}}**{{returnType}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}{{#isListContainer}}{{returnType}}<[**{{returnBaseType}}**](../model/{{returnBaseType}}.md)>{{/isListContainer}}{{^isListContainer}}[**{{returnType}}**](../model/{{returnType}}.md){{/isListContainer}}{{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}null (empty response body){{/returnType}}
+
+### Authorization
+
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{name}}](../../README.md#{{name}}){{^-last}}, {{/-last}}{{/authMethods}}
+
+### HTTP request headers
+
+- **Content-Type**: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{^produces}}Not defined{{/produces}}
+{{/hasHttpScheme}}{{/operation}}{{/operations}}
+
+{{#operations}}{{#operation}}{{#hasWSScheme}}{{#-first}}
+## WS Interaction:
+
+## Path: **/{{baseName}}**
+{{/-first}}
+
+## {{operationId}} {{#isDeprecated}} (Deprecated) {{/isDeprecated}}
+
+### {{#summary}}Summary
+{{summary}}{{/summary}}
+
+### Message
+**{{httpMethod}}{{path}}>:[message]**
+
+### Parameters
+
+{{#allParams}}{{#-first}}
+Param type | Name | Type | Description | Notes
+------------- | ------------- | ------------- | ------------- | -------------{{/-first}}{{/allParams}}
+{{#pathParams}}Path | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/pathParams}}{{#queryParams}}Query | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/queryParams}}{{#headerParams}}Header | {{baseName}} | {{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{#isListContainer}}{{dataType}}\<[{{baseType}}](../model/{{dataType}}.md)>{{/isListContainer}}{{^isListContainer}}[{{dataType}}](../model/{{dataType}}.md){{/isListContainer}}{{/isPrimitiveType}} | {{{description}}} | {{notes}}
+{{/headerParams}}
+
+### Return type
+
+{{#returnType}}{{#returnTypeIsPrimitive}}**{{returnType}}**{{/returnTypeIsPrimitive}}{{^returnTypeIsPrimitive}}{{#isListContainer}}{{returnType}}<[**{{returnBaseType}}**](../model/{{returnBaseType}}.md)>{{/isListContainer}}{{^isListContainer}}[**{{returnType}}**](../model/{{returnType}}.md){{/isListContainer}}{{/returnTypeIsPrimitive}}{{/returnType}}{{^returnType}}null (empty response body){{/returnType}}
+
+### Authorization
+
+{{^authMethods}}No authorization required{{/authMethods}}{{#authMethods}}[{{name}}](../../README.md#{{name}}){{^-last}}, {{/-last}}{{/authMethods}}
+
+### HTTP request headers
+
+- **Content-Type**: {{#consumes}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/consumes}}{{^consumes}}Not defined{{/consumes}}
+- **Accept**: {{#produces}}{{{mediaType}}}{{#hasMore}}, {{/hasMore}}{{/produces}}{{^produces}}Not defined{{/produces}}
+{{/hasWSScheme}}{{/operation}}{{/operations}}
