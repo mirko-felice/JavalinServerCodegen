@@ -3,7 +3,8 @@
             ws.onMessage(msgContext -> {
                 String request = msgContext.message().split(">:")[0];
                 switch (request){ {{/-first}}
-                    case "{{httpMethod}}{{path}}" -> {{operationId}}(msgContext);{{#-last}}
+                    case "{{httpMethod}}{{path}}": {{operationId}}(msgContext);
+                        break;{{#-last}}
                 }
             });
             ws.onBinaryMessage(msgContext -> {

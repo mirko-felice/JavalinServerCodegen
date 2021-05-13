@@ -72,8 +72,6 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
         modelTemplateFiles.put("model.mustache", ".java");
         writeOptional(outputFolder, new SupportingFile("README.mustache", "", "README.md"));
         writeOptional(outputFolder, new SupportingFile("build.gradle.kts.mustache", "", "build.gradle.kts"));
-        //writeOptional(outputFolder, new SupportingFile("settings.gradle.mustache", "", "settings.gradle"));
-        //writeOptional(outputFolder, new SupportingFile("gradle.properties.mustache", "", "gradle.properties"));
         supportingFiles.add(new SupportingFile( "gradlew.mustache", "", "gradlew") );
         supportingFiles.add(new SupportingFile( "gradlew.bat.mustache", "", "gradlew.bat") );
         supportingFiles.add(new SupportingFile( "gradle-wrapper.properties.mustache",
@@ -119,7 +117,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
     @Override
     public Map<String, Object> postProcessModels(Map<String, Object> objs) {
-        return postProcessModelsEnum(objs);
+        return postProcessModelsEnum(objs); // Generates mapping for enum
     }
 
     @Override
@@ -152,7 +150,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
     @Override
     public String toVarName(String name) {
-        name = sanitizeName(name); // FIXME: a parameter should not be assigned. Also declare the methods parameters as 'final'.
+        name = sanitizeName(name);
 
         if (name.toLowerCase().matches("^_*class$")) {
             return "propertyClass";

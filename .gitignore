@@ -1,3 +1,5 @@
+*.png
+*.plantuml
 .vscode
 *.iml
 out/
@@ -37,9 +39,6 @@ packages/
 /target
 /generated-files
 nbactions.xml
-
-samples/
-bin/windows/
 
 # nodejs
 **/node_modules

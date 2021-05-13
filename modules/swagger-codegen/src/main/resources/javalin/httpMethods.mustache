@@ -79,10 +79,10 @@
         {{/dataType}}{{/responses}}
 
         switch (code) {
-            {{#responses}}{{^isDefault}}case {{code}} -> {
+            {{#responses}}{{^isDefault}}case {{code}}:
                 {{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}
                 context.status({{code}});
-            }{{/isDefault}}
-            {{/responses}}default -> { {{#responses}}{{#isDefault}}{{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}{{/isDefault}}{{/responses}} }
+                break;{{/isDefault}}
+            {{/responses}}default: {{#responses}}{{#isDefault}}{{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}{{/isDefault}}{{/responses}}
         }
     }

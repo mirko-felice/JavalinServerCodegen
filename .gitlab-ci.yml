@@ -1,13 +1,13 @@
-image: pikalab/ci:ubuntu-jdk14-git-gradle-graphviz
+image: pikalab/ci:ubuntu-jdk11-git-gradle-graphviz
 
 before_script:
   - chmod +x mvnw
-  - chmod +x bin/javalin.sh
+  - chmod +x bin/javalin-petstore.sh
   - source $HOME/.sdkman/bin/sdkman-init.sh
 
 cache:
   paths:
-    - samples/javalin/
+    - samples/javalin/petstore
     - $HOME/.gradle/
     - $HOME/.m2/
     - gradle/
@@ -18,11 +18,11 @@ Compile:
   stage: build
   script:
     - ./mvnw clean package
-    - bin/javalin.sh
+    - bin/javalin-petstore.sh
 
 Test:
   stage: test
   script:
-    - cd samples/javalin
+    - cd samples/javalin/petstore
     - chmod +x gradlew
     - ./gradlew test

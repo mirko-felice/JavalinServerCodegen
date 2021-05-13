@@ -11,6 +11,9 @@ Name | Type | Description
 {{#isAlias}}
 {{classVarName}} | {{{dataType}}}{{#isListContainer}}\<{{baseType}}>{{/isListContainer}} | {{unescapedDescription}}
 {{/isAlias}}
+{{#isArrayModel}}
+{{classVarName}} | {{#parentContainer}}{{{datatype}}}\<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} | {{unescapedDescription}}
+{{/isArrayModel}}
 {{#vars}}
 {{baseName}} | {{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}\<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} | {{unescapedDescription}}
 {{/vars}}

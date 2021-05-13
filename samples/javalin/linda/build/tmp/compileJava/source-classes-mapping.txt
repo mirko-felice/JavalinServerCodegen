@@ -1,0 +1,24 @@
+Main.java
+ Main
+model/ListOfNames.java
+ model.ListOfNames
+utils/JavalinDeserializer.java
+ utils.JavalinDeserializer
+model/Name.java
+ model.Name
+model/ListOfTuples.java
+ model.ListOfTuples
+model/Tuple.java
+ model.Tuple
+utils/JavalinSerializer.java
+ utils.JavalinSerializer
+model/Template.java
+ model.Template
+utils/RemoteException.java
+ utils.RemoteException
+utils/Utilities.java
+ utils.Utilities
+api/TupleSpacesAPI.java
+ api.TupleSpacesAPI
+model/Number.java
+ model.Number

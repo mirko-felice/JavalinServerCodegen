@@ -27,13 +27,15 @@ public class {{classname}} {
     */{{/unescapedDescription}}
     private {{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}} {{baseName}};{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}> {{baseName}};{{/isContainer}}
     {{/vars}}
+    {{#isArrayModel}}private {{#parentContainer}}{{{datatype}}}<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}} = new {{{parent}}}();
+    {{/isArrayModel}}
 
     public {{name}}() { }
 
-    public {{name}}({{#isAlias}}{{{dataType}}} {{classVarName}}{{/isAlias}}{{#vars}}{{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}){
-        {{#isAlias}}this.{{classVarName}} = {{classVarName}} == null ? {{defaultValue}} : {{classVarName}};
-        {{/isAlias}}{{#vars}}this.{{baseName}} = {{baseName}} == null ? {{defaultValue}} : {{baseName}};{{#hasMore}}
-        {{/hasMore}}{{/vars}}
+    public {{name}}({{#isAlias}}{{{dataType}}} {{classVarName}}{{/isAlias}}{{#vars}}{{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} {{baseName}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{#isArrayModel}}{{#parentContainer}}{{{datatype}}}<{{#items}}{{{datatype}}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}{{/isArrayModel}}){
+        {{#isAlias}}this.{{classVarName}} = {{classVarName}};
+        {{/isAlias}}{{#vars}}this.{{baseName}} = {{baseName}};{{#hasMore}}
+        {{/hasMore}}{{/vars}}{{#isArrayModel}}this.{{classVarName}} = {{classVarName}};{{/isArrayModel}}
     }
 
 {{#isAlias}}
@@ -46,6 +48,16 @@ public class {{classname}} {
     }
 
 {{/isAlias}}
+{{#isArrayModel}}
+    public {{#parentContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} get{{classname}}(){
+        return this.{{classVarName}};
+    }
+
+    public void set{{classname}}({{#parentContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/parentContainer}} {{classVarName}}){
+        this.{{classVarName}} = {{classVarName}};
+    }
+
+{{/isArrayModel}}
 {{#vars}}
     public {{^isContainer}}{{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{datatype}}}{{/isEnum}}{{/isContainer}}{{#isContainer}}{{{datatype}}}<{{#items}}{{datatype}}{{#hasMore}}, {{/hasMore}}{{/items}}>{{/isContainer}} {{getter}}(){
         return this.{{baseName}};
@@ -57,13 +69,13 @@ public class {{classname}} {
 
 {{/vars}}
     public String toString(){
-        return {{#vars}}"{{baseName}} : " + {{baseName}}{{#hasMore}} +
+        return {{#isArrayModel}}"{{classVarName}} : " + {{classVarName}};{{/isArrayModel}}{{#vars}}"{{baseName}} : " + {{baseName}}{{#hasMore}} +
         {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{#isAlias}}"{{classVarName}} : " + {{classVarName}};{{/isAlias}}
     }
 
     public boolean equals({{name}} other){
         return {{#vars}}this.{{baseName}}.equals(other.{{getter}}()){{#hasMore}} &&
-        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{#isAlias}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isAlias}}
+        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{#isAlias}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isAlias}}{{#isArrayModel}}this.{{classVarName}}.equals(other.get{{classname}}());{{/isArrayModel}}
     }
 
     @Override
@@ -72,7 +84,8 @@ public class {{classname}} {
         int result = 31;
         {{#vars}}result = prime * result + this.{{baseName}}.hashCode();
         {{/vars}}{{#isAlias}}result = prime * result + this.{{classVarName}}.hashCode();
-        {{/isAlias}}
+        {{/isAlias}}{{#isArrayModel}}result = prime * result + this.{{classVarName}}.hashCode();
+        {{/isArrayModel}}
 
         return result;
     }
