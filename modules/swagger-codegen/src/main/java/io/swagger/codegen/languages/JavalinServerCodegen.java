@@ -81,6 +81,7 @@ public class JavalinServerCodegen extends DefaultCodegen implements CodegenConfi
 
         apiDocTemplateFiles.put("api_doc.mustache", ".md");
         modelDocTemplateFiles.put("model_doc.mustache", ".md");
+        supportingFiles.add(new SupportingFile( "serverStub.mustache", "doc","serverStub.md"));
     }
 
     @Override
