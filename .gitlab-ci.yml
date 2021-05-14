@@ -7,7 +7,7 @@ before_script:
 
 cache:
   paths:
-    - samples/javalin/petstore
+    - samples/javalin/petstore/
     - $HOME/.gradle/
     - $HOME/.m2/
     - gradle/
