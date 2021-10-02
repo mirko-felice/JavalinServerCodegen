@@ -34,12 +34,17 @@ import model.Pet.StatusEnum;
 import utils.Utilities;
 import io.javalin.http.UnauthorizedResponse;
 
-public class PetAPI {
+public abstract class PetAPI {
 
     private final String basePath;
+    private int code = 200;
 
     public PetAPI(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
+    }
+
+    protected final void setCode(final int code) {
+        this.code = code;
     }
 
     public void registerRoutes(Javalin server) {
@@ -89,8 +94,7 @@ public class PetAPI {
     * 
     * 
     */
-    public void addPet(Context context) {
-        int code = 200;
+    public final void addPet(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -119,19 +123,23 @@ public class PetAPI {
         Pet body = context.bodyValidator(Pet.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.addPetLogic(body);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 405:
                 context.result("Invalid input");
                 context.status(405);
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void addPetLogic(Pet body); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Deletes a pet
@@ -141,12 +149,8 @@ public class PetAPI {
     * PathParams:
     * petId: Pet id to delete
     * 
-    * HeaderParams:
-    * api_key: 
-    * 
     */
-    public void deletePet(Context context) {
-        int code = 200;
+    public final void deletePet(Context context) {
         
         
 
@@ -169,17 +173,15 @@ public class PetAPI {
 
         
         
-        // Headers
-        String api_key = context.header("api_key", String.class).getOrNull();
-
+        
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.deletePetLogic(petId);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 400:
                 context.result("Invalid ID supplied");
                 context.status(400);
@@ -190,7 +192,11 @@ public class PetAPI {
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void deletePetLogic(Long petId); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Finds Pets by status
@@ -201,8 +207,7 @@ public class PetAPI {
     * status: Status values that need to be considered for filter
     * 
     */
-    public void findPetsByStatus(Context context) {
-        int code = 200;
+    public final void findPetsByStatus(Context context) {
         
         
 
@@ -232,13 +237,13 @@ public class PetAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<List<Pet>> result = new CompletableFuture<>();
         
+        CompletableFuture<List<Pet>> result = this.findPetsByStatusLogic(status);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid status value");
@@ -246,7 +251,11 @@ public class PetAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeMany));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<List<Pet>> findPetsByStatusLogic(List<String> status); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Finds Pets by tags
@@ -258,8 +267,7 @@ public class PetAPI {
     * 
     */
     @Deprecated
-    public void findPetsByTags(Context context) {
-        int code = 200;
+    public final void findPetsByTags(Context context) {
         
         
 
@@ -286,13 +294,13 @@ public class PetAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<List<Pet>> result = new CompletableFuture<>();
         
+        CompletableFuture<List<Pet>> result = this.findPetsByTagsLogic(tags);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid tag value");
@@ -300,7 +308,11 @@ public class PetAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeMany));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<List<Pet>> findPetsByTagsLogic(List<String> tags); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Find pet by ID
@@ -311,8 +323,7 @@ public class PetAPI {
     * petId: ID of pet to return
     * 
     */
-    public void getPetById(Context context) {
-        int code = 200;
+    public final void getPetById(Context context) {
         
         
 
@@ -329,13 +340,13 @@ public class PetAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<Pet> result = new CompletableFuture<>();
         
+        CompletableFuture<Pet> result = this.getPetByIdLogic(petId);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid ID supplied");
@@ -347,7 +358,11 @@ public class PetAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Pet> getPetByIdLogic(Long petId); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Update an existing pet
@@ -355,8 +370,7 @@ public class PetAPI {
     * 
     * 
     */
-    public void updatePet(Context context) {
-        int code = 200;
+    public final void updatePet(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -385,12 +399,12 @@ public class PetAPI {
         Pet body = context.bodyValidator(Pet.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.updatePetLogic(body);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 400:
                 context.result("Invalid ID supplied");
                 context.status(400);
@@ -405,7 +419,11 @@ public class PetAPI {
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void updatePetLogic(Pet body); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Updates a pet in the store with form data
@@ -421,8 +439,7 @@ public class PetAPI {
     * status: Updated status of the pet
     * 
     */
-    public void updatePetWithForm(Context context) {
-        int code = 200;
+    public final void updatePetWithForm(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -455,19 +472,23 @@ public class PetAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.updatePetWithFormLogic(petId, name, status);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 405:
                 context.result("Invalid input");
                 context.status(405);
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void updatePetWithFormLogic(Long petId, String name, String status); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * uploads an image
@@ -483,8 +504,7 @@ public class PetAPI {
     * file: file to upload
     * 
     */
-    public void uploadFile(Context context) {
-        int code = 200;
+    public final void uploadFile(Context context) {
         final String filePath = ""; // TODO set uploadFilePath
         // Check request content type
         String contentType = context.contentType();
@@ -518,17 +538,21 @@ public class PetAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<ApiResponse> result = new CompletableFuture<>();
         
+        CompletableFuture<ApiResponse> result = this.uploadFileLogic(petId, additionalMetadata, file);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<ApiResponse> uploadFileLogic(Long petId, String additionalMetadata, UploadedFile file); // TODO The method should set the responding status code by calling setCode()
     
     /**
     * Add a new pet to the store
@@ -536,24 +560,19 @@ public class PetAPI {
     * 
     * 
     */
-    public void addPet(WsMessageContext context) {
+    public final void addPet(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.addPetWsLogic(requestMessage));
     }
+
+    public abstract String addPetWsLogic(String requestMessage);
 
     /**
     * Deletes a pet
@@ -563,32 +582,22 @@ public class PetAPI {
     * PathParams:
     * petId: Pet id to delete
     * 
-    * HeaderParams:
-    * api_key: 
-    * 
     */
-    public void deletePet(WsMessageContext context) {
+    public final void deletePet(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long petId = context.pathParam("petId", Long.class).get();
 
         
-        // Headers
-        String api_key = context.header("api_key");
-
-        //TODO Implement Behaviour
-
-
+        
         //Response
-        context.send(response);
+        context.send(this.deletePetWsLogic(requestMessage, petId));
     }
+
+    public abstract String deletePetWsLogic(String requestMessage, Long petId);
 
     /**
     * Finds Pets by status
@@ -599,15 +608,11 @@ public class PetAPI {
     * status: Status values that need to be considered for filter
     * 
     */
-    public void findPetsByStatus(WsMessageContext context) {
+    public final void findPetsByStatus(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         // Query params
         List<String> status = context.queryParams("status");
@@ -617,12 +622,11 @@ public class PetAPI {
         
 
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.findPetsByStatusWsLogic(requestMessage, status));
     }
+
+    public abstract String findPetsByStatusWsLogic(String requestMessage, List<String> status);
 
     /**
     * Finds Pets by tags
@@ -634,27 +638,22 @@ public class PetAPI {
     * 
     */
     @Deprecated
-    public void findPetsByTags(WsMessageContext context) {
+    public final void findPetsByTags(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         // Query params
         List<String> tags = context.queryParams("tags");
         
 
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.findPetsByTagsWsLogic(requestMessage, tags));
     }
+
+    public abstract String findPetsByTagsWsLogic(String requestMessage, List<String> tags);
 
     /**
     * Find pet by ID
@@ -665,26 +664,21 @@ public class PetAPI {
     * petId: ID of pet to return
     * 
     */
-    public void getPetById(WsMessageContext context) {
+    public final void getPetById(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long petId = context.pathParam("petId", Long.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.getPetByIdWsLogic(requestMessage, petId));
     }
+
+    public abstract String getPetByIdWsLogic(String requestMessage, Long petId);
 
     /**
     * Update an existing pet
@@ -692,24 +686,19 @@ public class PetAPI {
     * 
     * 
     */
-    public void updatePet(WsMessageContext context) {
+    public final void updatePet(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.updatePetWsLogic(requestMessage));
     }
+
+    public abstract String updatePetWsLogic(String requestMessage);
 
     /**
     * Updates a pet in the store with form data
@@ -720,26 +709,21 @@ public class PetAPI {
     * petId: ID of pet that needs to be updated
     * 
     */
-    public void updatePetWithForm(WsMessageContext context) {
+    public final void updatePetWithForm(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long petId = context.pathParam("petId", Long.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.updatePetWithFormWsLogic(requestMessage, petId));
     }
+
+    public abstract String updatePetWithFormWsLogic(String requestMessage, Long petId);
 
     /**
     * uploads an image
@@ -750,24 +734,19 @@ public class PetAPI {
     * petId: ID of pet to update
     * 
     */
-    public void uploadFile(WsMessageContext context) {
+    public final void uploadFile(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long petId = context.pathParam("petId", Long.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.uploadFileWsLogic(requestMessage, petId));
     }
+
+    public abstract String uploadFileWsLogic(String requestMessage, Long petId);
 }

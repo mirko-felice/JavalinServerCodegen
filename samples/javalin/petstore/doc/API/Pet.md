@@ -50,7 +50,6 @@ Deletes a pet
 Param type | Name | Type | Description | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 Path | petId | Long | Pet id to delete | 
-Header | api_key | String |  | 
 
 ### Return type
 
@@ -260,7 +259,6 @@ Deletes a pet
 Param type | Name | Type | Description | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
 Path | petId | Long | Pet id to delete | 
-Header | api_key | String |  | 
 
 ### Return type
 

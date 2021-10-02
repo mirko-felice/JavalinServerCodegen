@@ -34,7 +34,85 @@ public class PetAPITest {
 
     private static final String BASE_PATH = "/v2";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
-    private static final PetAPI API = new PetAPI(BASE_PATH);
+    private static final PetAPI API = new PetAPI(BASE_PATH) {
+
+        @Override
+        public void addPetLogic(Pet body) { 
+        }
+
+        @Override
+        public String addPetWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void deletePetLogic(Long petId) { 
+        }
+
+        @Override
+        public String deletePetWsLogic(String requestMessage, Long petId) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<List<Pet>> findPetsByStatusLogic(List<String> status) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String findPetsByStatusWsLogic(String requestMessage, List<String> status) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<List<Pet>> findPetsByTagsLogic(List<String> tags) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String findPetsByTagsWsLogic(String requestMessage, List<String> tags) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<Pet> getPetByIdLogic(Long petId) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String getPetByIdWsLogic(String requestMessage, Long petId) {
+            return "";
+        }
+    
+        @Override
+        public void updatePetLogic(Pet body) { 
+        }
+
+        @Override
+        public String updatePetWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void updatePetWithFormLogic(Long petId, String name, String status) { 
+        }
+
+        @Override
+        public String updatePetWithFormWsLogic(String requestMessage, Long petId) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<ApiResponse> uploadFileLogic(Long petId, String additionalMetadata, UploadedFile file) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String uploadFileWsLogic(String requestMessage, Long petId) {
+            return "";
+        }
+    
+    };
     private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
     private String uri;
@@ -104,11 +182,10 @@ public class PetAPITest {
     @Test
     public void deletePetTest() {
         Long petId = null;
-        String apiKey = null;
 
         uri = BASE_URI + "/pet/{petId}".replaceFirst(Pattern.quote("{" + "petId" + "}"), String.valueOf(petId));
         HttpRequest.Builder builder = createRequest();
-        builder.header("apiKey", String.valueOf(apiKey));
+        
         
         HttpRequest request = delete(builder /* TODO initialize params and uncomment ,*/);
 

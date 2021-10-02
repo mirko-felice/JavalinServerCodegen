@@ -31,7 +31,33 @@ public class TupleSpacesAPITest {
 
     private static final String BASE_PATH = "/linda/v2";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
-    private static final TupleSpacesAPI API = new TupleSpacesAPI(BASE_PATH);
+    private static final TupleSpacesAPI API = new TupleSpacesAPI(BASE_PATH) {
+
+        @Override
+        public CompletableFuture<Tuple> deleteTupleLogic(String tupleSpaceName, String template) { 
+            return new CompletableFuture<>();
+        }
+
+
+        @Override
+        public CompletableFuture<Object> getTupleLogic(String tupleSpaceName, Boolean count, String template) { 
+            return new CompletableFuture<>();
+        }
+
+
+        @Override
+        public CompletableFuture<ListOfNames> getTupleSpacesLogic(Integer skip, Integer limit, String filter) { 
+            return new CompletableFuture<>();
+        }
+
+
+        @Override
+        public CompletableFuture<Tuple> postTupleLogic(String tupleSpaceName, Tuple tuple) { 
+            return new CompletableFuture<>();
+        }
+
+
+    };
     private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
     private String uri;

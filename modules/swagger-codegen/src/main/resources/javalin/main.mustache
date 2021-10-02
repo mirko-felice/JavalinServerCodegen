@@ -10,8 +10,9 @@ public class Main {
             port = Integer.parseInt("{{host}}".split(":")[1]);
         Javalin server = Javalin.create().start(host, port);
 
-        {{#apiInfo}}{{#apis}}{{classFilename}} {{classVarName}} = new {{classFilename}}("{{basePathWithoutHost}}");
-        {{classVarName}}.registerRoutes(server);
+        {{#apiInfo}}{{#apis}}{{classFilename}} {{classVarName}}; // TODO Instantiate class that extends {{classFilename}} like 'new {{classFilename}}Impl("{{basePathWithoutHost}}")'
+
+//        {{classVarName}}.registerRoutes(server);
 
         {{/apis}}{{/apiInfo}}
     }

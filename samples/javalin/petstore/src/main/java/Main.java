@@ -25,14 +25,17 @@ public class Main {
             port = Integer.parseInt("localhost".split(":")[1]);
         Javalin server = Javalin.create().start(host, port);
 
-        PetAPI petAPI = new PetAPI("/v2");
-        petAPI.registerRoutes(server);
+        PetAPI petAPI; // TODO Instantiate class that extends PetAPI like 'new PetAPIImpl("/v2")'
 
-        StoreAPI storeAPI = new StoreAPI("/v2");
-        storeAPI.registerRoutes(server);
+//        petAPI.registerRoutes(server);
 
-        UserAPI userAPI = new UserAPI("/v2");
-        userAPI.registerRoutes(server);
+        StoreAPI storeAPI; // TODO Instantiate class that extends StoreAPI like 'new StoreAPIImpl("/v2")'
+
+//        storeAPI.registerRoutes(server);
+
+        UserAPI userAPI; // TODO Instantiate class that extends UserAPI like 'new UserAPIImpl("/v2")'
+
+//        userAPI.registerRoutes(server);
 
         
     }

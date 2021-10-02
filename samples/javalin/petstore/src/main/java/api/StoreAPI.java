@@ -29,12 +29,17 @@ import io.javalin.websocket.WsMessageContext;
 import utils.Utilities;
 import io.javalin.http.UnauthorizedResponse;
 
-public class StoreAPI {
+public abstract class StoreAPI {
 
     private final String basePath;
+    private int code = 200;
 
     public StoreAPI(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
+    }
+
+    protected final void setCode(final int code) {
+        this.code = code;
     }
 
     public void registerRoutes(Javalin server) {
@@ -75,8 +80,7 @@ public class StoreAPI {
     * orderId: ID of the order that needs to be deleted
     * 
     */
-    public void deleteOrder(Context context) {
-        int code = 200;
+    public final void deleteOrder(Context context) {
         
         
 
@@ -89,12 +93,12 @@ public class StoreAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.deleteOrderLogic(orderId);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 400:
                 context.result("Invalid ID supplied");
                 context.status(400);
@@ -105,7 +109,11 @@ public class StoreAPI {
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void deleteOrderLogic(Long orderId); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Returns pet inventories by status
@@ -113,8 +121,7 @@ public class StoreAPI {
     * Returns a map of status codes to quantities
     * 
     */
-    public void getInventory(Context context) {
-        int code = 200;
+    public final void getInventory(Context context) {
         
         
 
@@ -129,17 +136,21 @@ public class StoreAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<Map<String, Integer>> result = new CompletableFuture<>();
         
+        CompletableFuture<Map<String, Integer>> result = this.getInventoryLogic();
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             default: context.result(result.thenApply(Utilities::serializeMap));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Map<String, Integer>> getInventoryLogic(); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Find purchase order by ID
@@ -150,8 +161,7 @@ public class StoreAPI {
     * orderId: ID of pet that needs to be fetched
     * 
     */
-    public void getOrderById(Context context) {
-        int code = 200;
+    public final void getOrderById(Context context) {
         
         
 
@@ -164,13 +174,13 @@ public class StoreAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<Order> result = new CompletableFuture<>();
         
+        CompletableFuture<Order> result = this.getOrderByIdLogic(orderId);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid ID supplied");
@@ -182,7 +192,11 @@ public class StoreAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Order> getOrderByIdLogic(Long orderId); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Place an order for a pet
@@ -190,8 +204,7 @@ public class StoreAPI {
     * 
     * 
     */
-    public void placeOrder(Context context) {
-        int code = 200;
+    public final void placeOrder(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -207,13 +220,13 @@ public class StoreAPI {
         Order body = context.bodyValidator(Order.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<Order> result = new CompletableFuture<>();
         
+        CompletableFuture<Order> result = this.placeOrderLogic(body);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid Order");
@@ -221,7 +234,11 @@ public class StoreAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Order> placeOrderLogic(Order body); // TODO The method should set the responding status code by calling setCode()
     
     /**
     * Delete purchase order by ID
@@ -232,26 +249,21 @@ public class StoreAPI {
     * orderId: ID of the order that needs to be deleted
     * 
     */
-    public void deleteOrder(WsMessageContext context) {
+    public final void deleteOrder(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long orderId = context.pathParam("orderId", Long.class).check(i -> i >= 1).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.deleteOrderWsLogic(requestMessage, orderId));
     }
+
+    public abstract String deleteOrderWsLogic(String requestMessage, Long orderId);
 
     /**
     * Returns pet inventories by status
@@ -259,24 +271,19 @@ public class StoreAPI {
     * Returns a map of status codes to quantities
     * 
     */
-    public void getInventory(WsMessageContext context) {
+    public final void getInventory(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.getInventoryWsLogic(requestMessage));
     }
+
+    public abstract String getInventoryWsLogic(String requestMessage);
 
     /**
     * Find purchase order by ID
@@ -287,26 +294,21 @@ public class StoreAPI {
     * orderId: ID of pet that needs to be fetched
     * 
     */
-    public void getOrderById(WsMessageContext context) {
+    public final void getOrderById(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         Long orderId = context.pathParam("orderId", Long.class).check(i -> i >= 1).check(i -> i <= 10).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.getOrderByIdWsLogic(requestMessage, orderId));
     }
+
+    public abstract String getOrderByIdWsLogic(String requestMessage, Long orderId);
 
     /**
     * Place an order for a pet
@@ -314,22 +316,17 @@ public class StoreAPI {
     * 
     * 
     */
-    public void placeOrder(WsMessageContext context) {
+    public final void placeOrder(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.placeOrderWsLogic(requestMessage));
     }
+
+    public abstract String placeOrderWsLogic(String requestMessage);
 }

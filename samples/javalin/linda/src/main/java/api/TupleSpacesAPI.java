@@ -42,12 +42,17 @@ import io.javalin.websocket.WsMessageContext;
 import utils.Utilities;
 import io.javalin.http.UnauthorizedResponse;
 
-public class TupleSpacesAPI {
+public abstract class TupleSpacesAPI {
 
     private final String basePath;
+    private int code = 200;
 
     public TupleSpacesAPI(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
+    }
+
+    protected final void setCode(final int code) {
+        this.code = code;
     }
 
     public void registerRoutes(Javalin server) {
@@ -70,8 +75,7 @@ public class TupleSpacesAPI {
     * template: [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding) regex template 
     * 
     */
-    public void deleteTuple(Context context) {
-        int code = 200;
+    public final void deleteTuple(Context context) {
         
         
 
@@ -87,13 +91,13 @@ public class TupleSpacesAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<Tuple> result = new CompletableFuture<>();
         
+        CompletableFuture<Tuple> result = this.deleteTupleLogic(tupleSpaceName, template);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Some parameter is not well formed or missing");
@@ -101,7 +105,11 @@ public class TupleSpacesAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Tuple> deleteTupleLogic(String tupleSpaceName, String template); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Get or count tuples from the tuple space
@@ -117,8 +125,7 @@ public class TupleSpacesAPI {
     * template: States whether this method should behave as the `rd` primitive (if present) or not, and, in that case it carries an [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding) JSON object wrapping a regex template
     * 
     */
-    public void getTuple(Context context) {
-        int code = 200;
+    public final void getTuple(Context context) {
         
         
 
@@ -137,13 +144,13 @@ public class TupleSpacesAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<Object> result = new CompletableFuture<>();
         
+        CompletableFuture<Object> result = this.getTupleLogic(tupleSpaceName, count, template);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Some parameter is not well formed");
@@ -151,7 +158,11 @@ public class TupleSpacesAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Object> getTupleLogic(String tupleSpaceName, Boolean count, String template); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Get the names of all the currently instantiated tuple spaces
@@ -166,8 +177,7 @@ public class TupleSpacesAPI {
     * filter: Optional parameter constraining the bulk query to return only those sub-resources whose representation contains this value. Defaults to the empty string
     * 
     */
-    public void getTupleSpaces(Context context) {
-        int code = 200;
+    public final void getTupleSpaces(Context context) {
         
         
 
@@ -187,13 +197,13 @@ public class TupleSpacesAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<ListOfNames> result = new CompletableFuture<>();
         
+        CompletableFuture<ListOfNames> result = this.getTupleSpacesLogic(skip, limit, filter);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Bad request. The provided `skip` and/or `limit` parameters are not valid integers");
@@ -201,7 +211,11 @@ public class TupleSpacesAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<ListOfNames> getTupleSpacesLogic(Integer skip, Integer limit, String filter); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Insert a tuple into the tuple space
@@ -212,8 +226,7 @@ public class TupleSpacesAPI {
     * tupleSpaceName: The name of the textual space upon which the method will operate
     * 
     */
-    public void postTuple(Context context) {
-        int code = 200;
+    public final void postTuple(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -231,13 +244,13 @@ public class TupleSpacesAPI {
         Tuple tuple = context.bodyValidator(Tuple.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json");
-        CompletableFuture<Tuple> result = new CompletableFuture<>();
         
+        CompletableFuture<Tuple> result = this.postTupleLogic(tupleSpaceName, tuple);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Some parameter is not well formed");
@@ -245,7 +258,11 @@ public class TupleSpacesAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<Tuple> postTupleLogic(String tupleSpaceName, Tuple tuple); // TODO The method should set the responding status code by calling setCode()
     
 
 

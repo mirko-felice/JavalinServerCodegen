@@ -17,8 +17,7 @@
     * {{/headerParams}}
     */{{#isDeprecated}}
     @Deprecated{{/isDeprecated}}
-    public void {{operationId}}(Context context) {
-        int code = 200;
+    public final void {{operationId}}(Context context) {
         {{#allParams}}{{#isFile}}final String {{baseName}}Path = ""; // TODO set uploadFilePath{{/isFile}}{{/allParams}}
         {{#hasConsumes}}// Check request content type
         String contentType = context.contentType();
@@ -66,23 +65,33 @@
         {{#bodyParam}}// Body
         {{^isContainer}}{{dataType}} {{baseName}} = context.bodyValidator({{dataType}}.class).get{{^required}}OrNull{{/required}}();
         {{/isContainer}}{{#isContainer}}JSONArray jsonArray = new JSONArray(context.body());
+        List<{{baseType}}> {{baseName}} = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             {{baseType}} element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), {{baseType}}.class);
+            {{baseName}}.add(element);
         }{{/isContainer}}{{/bodyParam}}
 
-        //TODO Implement Behaviour
-
         context.contentType("{{#produces}}{{mediaType}}{{#hasMore}}; {{/hasMore}}{{/produces}}");
-        {{#responses}}
+        {{#responses}}{{#-first}}{{#isDefault}}
         {{#dataType}}
-        CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}> result = new CompletableFuture<>();
-        {{/dataType}}{{/responses}}
+        CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}> result = this.{{operationId}}Logic({{#allParams}}{{baseName}}{{^-last}}, {{/-last}}{{/allParams}});
+        {{/dataType}}
+        {{^dataType}}
+        this.{{operationId}}Logic({{#allParams}}{{baseName}}{{^-last}}, {{/-last}}{{/allParams}});
+        {{/dataType}}{{/isDefault}}
+        {{^isDefault}}
+        this.{{operationId}}Logic({{#allParams}}{{baseName}}{{^-last}}, {{/-last}}{{/allParams}});
+        {{/isDefault}}{{/-first}}{{/responses}}
 
-        switch (code) {
+        switch (this.code) {
             {{#responses}}{{^isDefault}}case {{code}}:
                 {{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}
                 context.status({{code}});
                 break;{{/isDefault}}
             {{/responses}}default: {{#responses}}{{#isDefault}}{{#dataType}}context.result(result.thenApply(Utilities::serialize{{#isMapContainer}}Map{{/isMapContainer}}{{#isListContainer}}Many{{/isListContainer}}{{^isListContainer}}{{^isMapContainer}}One{{/isMapContainer}}{{/isListContainer}}));{{/dataType}}{{^dataType}}context.result("{{{message}}}");{{/dataType}}{{/isDefault}}{{/responses}}
         }
+
+        this.code = 200;
     }
+
+    public abstract {{#responses}}{{#-first}}{{#isDefault}}{{#dataType}}CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}>{{/dataType}}{{^dataType}}void{{/dataType}}{{/isDefault}}{{^isDefault}}void{{/isDefault}}{{/-first}}{{/responses}} {{operationId}}Logic({{#allParams}}{{#isFile}}UploadedFile{{/isFile}}{{^isFile}}{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{/isFile}} {{baseName}}{{^-last}}, {{/-last}}{{/allParams}}); // TODO The method should set the responding status code by calling setCode()

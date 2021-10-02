@@ -30,7 +30,48 @@ public class StoreAPITest {
 
     private static final String BASE_PATH = "/v2";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
-    private static final StoreAPI API = new StoreAPI(BASE_PATH);
+    private static final StoreAPI API = new StoreAPI(BASE_PATH) {
+
+        @Override
+        public void deleteOrderLogic(Long orderId) { 
+        }
+
+        @Override
+        public String deleteOrderWsLogic(String requestMessage, Long orderId) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<Map<String, Integer>> getInventoryLogic() { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String getInventoryWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<Order> getOrderByIdLogic(Long orderId) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String getOrderByIdWsLogic(String requestMessage, Long orderId) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<Order> placeOrderLogic(Order body) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String placeOrderWsLogic(String requestMessage) {
+            return "";
+        }
+    
+    };
     private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
     private String uri;

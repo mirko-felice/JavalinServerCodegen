@@ -31,12 +31,17 @@ import io.javalin.websocket.WsMessageContext;
 import utils.Utilities;
 import io.javalin.http.UnauthorizedResponse;
 
-public class UserAPI {
+public abstract class UserAPI {
 
     private final String basePath;
+    private int code = 200;
 
     public UserAPI(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
+    }
+
+    protected final void setCode(final int code) {
+        this.code = code;
     }
 
     public void registerRoutes(Javalin server) {
@@ -86,8 +91,7 @@ public class UserAPI {
     * This can only be done by the logged in user.
     * 
     */
-    public void createUser(Context context) {
-        int code = 200;
+    public final void createUser(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -103,16 +107,21 @@ public class UserAPI {
         User body = context.bodyValidator(User.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.createUserLogic(body);
+        
 
 
-        switch (code) {
+        switch (this.code) {
             
             default: context.result("successful operation");
         }
+
+        this.code = 200;
     }
+
+    public abstract void createUserLogic(User body); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Creates list of users with given input array
@@ -120,8 +129,7 @@ public class UserAPI {
     * 
     * 
     */
-    public void createUsersWithArrayInput(Context context) {
-        int code = 200;
+    public final void createUsersWithArrayInput(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -135,20 +143,27 @@ public class UserAPI {
         
         // Body
         JSONArray jsonArray = new JSONArray(context.body());
+        List<User> body = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             User element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), User.class);
+            body.add(element);
         }
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.createUsersWithArrayInputLogic(body);
+        
 
 
-        switch (code) {
+        switch (this.code) {
             
             default: context.result("successful operation");
         }
+
+        this.code = 200;
     }
+
+    public abstract void createUsersWithArrayInputLogic(List<User> body); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Creates list of users with given input array
@@ -156,8 +171,7 @@ public class UserAPI {
     * 
     * 
     */
-    public void createUsersWithListInput(Context context) {
-        int code = 200;
+    public final void createUsersWithListInput(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -171,20 +185,27 @@ public class UserAPI {
         
         // Body
         JSONArray jsonArray = new JSONArray(context.body());
+        List<User> body = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             User element =  JavalinJson.fromJson(jsonArray.getJSONObject(i).toString(), User.class);
+            body.add(element);
         }
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.createUsersWithListInputLogic(body);
+        
 
 
-        switch (code) {
+        switch (this.code) {
             
             default: context.result("successful operation");
         }
+
+        this.code = 200;
     }
+
+    public abstract void createUsersWithListInputLogic(List<User> body); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Delete user
@@ -195,8 +216,7 @@ public class UserAPI {
     * username: The name that needs to be deleted
     * 
     */
-    public void deleteUser(Context context) {
-        int code = 200;
+    public final void deleteUser(Context context) {
         
         
 
@@ -209,12 +229,12 @@ public class UserAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.deleteUserLogic(username);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 400:
                 context.result("Invalid username supplied");
                 context.status(400);
@@ -225,7 +245,11 @@ public class UserAPI {
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void deleteUserLogic(String username); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Get user by user name
@@ -236,8 +260,7 @@ public class UserAPI {
     * username: The name that needs to be fetched. Use user1 for testing. 
     * 
     */
-    public void getUserByName(Context context) {
-        int code = 200;
+    public final void getUserByName(Context context) {
         
         
 
@@ -250,13 +273,13 @@ public class UserAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<User> result = new CompletableFuture<>();
         
+        CompletableFuture<User> result = this.getUserByNameLogic(username);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid username supplied");
@@ -268,7 +291,11 @@ public class UserAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<User> getUserByNameLogic(String username); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Logs user into the system
@@ -281,8 +308,7 @@ public class UserAPI {
     * password: The password for login in clear text
     * 
     */
-    public void loginUser(Context context) {
-        int code = 200;
+    public final void loginUser(Context context) {
         
         
 
@@ -299,13 +325,13 @@ public class UserAPI {
         
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
-        CompletableFuture<String> result = new CompletableFuture<>();
         
+        CompletableFuture<String> result = this.loginUserLogic(username, password);
 
-        switch (code) {
+
+
+        switch (this.code) {
             
             case 400:
                 context.result("Invalid username/password supplied");
@@ -313,7 +339,11 @@ public class UserAPI {
                 break;
             default: context.result(result.thenApply(Utilities::serializeOne));
         }
+
+        this.code = 200;
     }
+
+    public abstract CompletableFuture<String> loginUserLogic(String username, String password); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Logs out current logged in user session
@@ -321,8 +351,7 @@ public class UserAPI {
     * 
     * 
     */
-    public void logoutUser(Context context) {
-        int code = 200;
+    public final void logoutUser(Context context) {
         
         
 
@@ -332,17 +361,22 @@ public class UserAPI {
         
         
         
-
-        //TODO Implement Behaviour
 
         context.contentType("application/json; application/xml");
+        
+        this.logoutUserLogic();
+        
 
 
-        switch (code) {
+        switch (this.code) {
             
             default: context.result("successful operation");
         }
+
+        this.code = 200;
     }
+
+    public abstract void logoutUserLogic(); // TODO The method should set the responding status code by calling setCode()
 
     /**
     * Updated user
@@ -353,8 +387,7 @@ public class UserAPI {
     * username: name that need to be updated
     * 
     */
-    public void updateUser(Context context) {
-        int code = 200;
+    public final void updateUser(Context context) {
         
         // Check request content type
         String contentType = context.contentType();
@@ -372,12 +405,12 @@ public class UserAPI {
         User body = context.bodyValidator(User.class).get();
         
 
-        //TODO Implement Behaviour
-
         context.contentType("application/json; application/xml");
+        
+        this.updateUserLogic(username, body);
+        
 
-
-        switch (code) {
+        switch (this.code) {
             case 400:
                 context.result("Invalid user supplied");
                 context.status(400);
@@ -388,7 +421,11 @@ public class UserAPI {
                 break;
             default: 
         }
+
+        this.code = 200;
     }
+
+    public abstract void updateUserLogic(String username, User body); // TODO The method should set the responding status code by calling setCode()
     
     /**
     * Create user
@@ -396,24 +433,19 @@ public class UserAPI {
     * This can only be done by the logged in user.
     * 
     */
-    public void createUser(WsMessageContext context) {
+    public final void createUser(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.createUserWsLogic(requestMessage));
     }
+
+    public abstract String createUserWsLogic(String requestMessage);
 
     /**
     * Creates list of users with given input array
@@ -421,24 +453,19 @@ public class UserAPI {
     * 
     * 
     */
-    public void createUsersWithArrayInput(WsMessageContext context) {
+    public final void createUsersWithArrayInput(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.createUsersWithArrayInputWsLogic(requestMessage));
     }
+
+    public abstract String createUsersWithArrayInputWsLogic(String requestMessage);
 
     /**
     * Creates list of users with given input array
@@ -446,24 +473,19 @@ public class UserAPI {
     * 
     * 
     */
-    public void createUsersWithListInput(WsMessageContext context) {
+    public final void createUsersWithListInput(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.createUsersWithListInputWsLogic(requestMessage));
     }
+
+    public abstract String createUsersWithListInputWsLogic(String requestMessage);
 
     /**
     * Delete user
@@ -474,26 +496,21 @@ public class UserAPI {
     * username: The name that needs to be deleted
     * 
     */
-    public void deleteUser(WsMessageContext context) {
+    public final void deleteUser(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         String username = context.pathParam("username", String.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.deleteUserWsLogic(requestMessage, username));
     }
+
+    public abstract String deleteUserWsLogic(String requestMessage, String username);
 
     /**
     * Get user by user name
@@ -504,26 +521,21 @@ public class UserAPI {
     * username: The name that needs to be fetched. Use user1 for testing. 
     * 
     */
-    public void getUserByName(WsMessageContext context) {
+    public final void getUserByName(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         String username = context.pathParam("username", String.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.getUserByNameWsLogic(requestMessage, username));
     }
+
+    public abstract String getUserByNameWsLogic(String requestMessage, String username);
 
     /**
     * Logs user into the system
@@ -536,15 +548,11 @@ public class UserAPI {
     * password: The password for login in clear text
     * 
     */
-    public void loginUser(WsMessageContext context) {
+    public final void loginUser(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         // Query params
         String username = context.queryParam("username", String.class, null).get();
@@ -554,12 +562,11 @@ public class UserAPI {
         
 
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.loginUserWsLogic(requestMessage, username, password));
     }
+
+    public abstract String loginUserWsLogic(String requestMessage, String username, String password);
 
     /**
     * Logs out current logged in user session
@@ -567,24 +574,19 @@ public class UserAPI {
     * 
     * 
     */
-    public void logoutUser(WsMessageContext context) {
+    public final void logoutUser(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.logoutUserWsLogic(requestMessage));
     }
+
+    public abstract String logoutUserWsLogic(String requestMessage);
 
     /**
     * Updated user
@@ -595,24 +597,19 @@ public class UserAPI {
     * username: name that need to be updated
     * 
     */
-    public void updateUser(WsMessageContext context) {
+    public final void updateUser(WsMessageContext context) {
 
         String message = context.message();
         String request = message.split(">:")[0];
-        String requestMessage = "";
-        String[] parts = message.split(">:");
-        for (String el : parts)
-            requestMessage = requestMessage.concat(el);
-        String response = "";
+        String requestMessage = message.split(">:", 2)[1];
         // Path params
         String username = context.pathParam("username", String.class).get();
 
         
         
-        //TODO Implement Behaviour
-
-
         //Response
-        context.send(response);
+        context.send(this.updateUserWsLogic(requestMessage, username));
     }
+
+    public abstract String updateUserWsLogic(String requestMessage, String username);
 }

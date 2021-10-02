@@ -21,7 +21,21 @@ public class {{classname}}APITest {
 
     private static final String BASE_PATH = "{{basePathWithoutHost}}";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
-    private static final {{classname}}API API = new {{classname}}API(BASE_PATH);
+    private static final {{classname}}API API = new {{classname}}API(BASE_PATH) {
+{{#operations}}{{#operation}}{{#hasHttpScheme}}
+        @Override
+        public {{#responses}}{{#-first}}{{#isDefault}}{{#dataType}}CompletableFuture<{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{#isMapContainer}}<String, {{baseType}}>{{/isMapContainer}}>{{/dataType}}{{^dataType}}void{{/dataType}}{{/isDefault}}{{^isDefault}}void{{/isDefault}}{{/-first}}{{/responses}} {{operationId}}Logic({{#allParams}}{{#isFile}}UploadedFile{{/isFile}}{{^isFile}}{{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}}{{/isFile}} {{baseName}}{{^-last}}, {{/-last}}{{/allParams}}) { {{#responses}}{{#-first}}{{#isDefault}}{{#dataType}}
+            return new CompletableFuture<>();{{/dataType}}{{/isDefault}}{{/-first}}{{/responses}}
+        }
+    {{/hasHttpScheme}}
+
+    {{#hasWSScheme}}
+        @Override
+        public String {{operationId}}WsLogic(String requestMessage{{#allParams}}{{^isBodyParam}}{{^isFormParam}}, {{dataType}}{{#isListContainer}}<{{baseType}}>{{/isListContainer}} {{baseName}}{{/isFormParam}}{{/isBodyParam}}{{/allParams}}) {
+            return "";
+        }
+    {{/hasWSScheme}}{{/operation}}{{/operations}}
+    };
     private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
     private String uri;

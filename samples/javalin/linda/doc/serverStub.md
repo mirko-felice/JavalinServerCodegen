@@ -18,7 +18,7 @@ If the model is a class it contains:
 
 # APIs:
 
-Each api generated contains base implementation which includes:
+Each api generated is an abstract class to be extended that contains base implementation which includes:
 
 1) Registration of all specified routes. The routes will be created for the schemes specified globally.
 For *http/https* schemes a route will be created for each path.
@@ -34,9 +34,9 @@ If no GLOBAL scheme was specified the stub will contain ONLY *http* routes and r
 - Form parameters;
 - Headers of the request;
 - Body of the request;
-- Behaviour (this is NOT implemented);
+- Call of the associated abstract method (which should contain the behaviour);
 
-At the end for each possible response the stub sets status code and corresponding result, basing on the code that would be set by the behaviour.
+At the end for each possible response the stub sets status code and corresponding result, basing on the code that would be set by the user in associated implementation of the abstract method.
 
 3) For each ws/wss route a method containing code that extracts data sent by the client. Till WebSocket interface can send only messages the amount of extracted information is less:
 - Message sent;
@@ -48,13 +48,13 @@ At the end the response is sent back to the client.
 
 ## TODO:
 
-In each method relative to a path the behaviour that the server must have in response to the request of the client must be implemented.
+Each abstract method relative to a path the behaviour that the server must have in response to the request of the client must be implemented.
 
 # Tests:
 
 For each *tag* a test class is generated.
 Each class creates a local instance of Javalin server and a client that performs some requests to the server.
-It also instantiates the API to register its routes on server.
+It also instantiates the API as anonymous class with empty implementation of each abstract method and registers its routes on server.
 
 For each operation, the class contains a method that defines the parameters for the request without initializing them.
 The method also sets the Uri on which the request is performed, adding query and path parameters, serializing them. Then it builds the request depending on the HTTP method.

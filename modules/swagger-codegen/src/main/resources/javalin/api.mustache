@@ -8,12 +8,17 @@ import {{modelPackage}}.{{classname}}.{{enumName}};{{/isEnum}}{{/allParams}}{{/o
 import utils.Utilities;
 import io.javalin.http.UnauthorizedResponse;
 
-public class {{classname}}API {
+public abstract class {{classname}}API {
 
     private final String basePath;
+    private int code = 200;
 
     public {{classname}}API(final String basePath) {
         this.basePath = Objects.requireNonNull(basePath);
+    }
+
+    protected final void setCode(final int code) {
+        this.code = code;
     }
 
     public void registerRoutes(Javalin server) {

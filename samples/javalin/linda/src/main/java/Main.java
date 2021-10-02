@@ -35,8 +35,9 @@ public class Main {
             port = Integer.parseInt("localhost:8080".split(":")[1]);
         Javalin server = Javalin.create().start(host, port);
 
-        TupleSpacesAPI tupleSpacesAPI = new TupleSpacesAPI("/linda/v2");
-        tupleSpacesAPI.registerRoutes(server);
+        TupleSpacesAPI tupleSpacesAPI; // TODO Instantiate class that extends TupleSpacesAPI like 'new TupleSpacesAPIImpl("/linda/v2")'
+
+//        tupleSpacesAPI.registerRoutes(server);
 
         
     }

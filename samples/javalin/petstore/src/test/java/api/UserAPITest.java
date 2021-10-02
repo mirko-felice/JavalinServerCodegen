@@ -32,7 +32,83 @@ public class UserAPITest {
 
     private static final String BASE_PATH = "/v2";
     private static final String BASE_URI = "http://localhost:7000" + BASE_PATH;
-    private static final UserAPI API = new UserAPI(BASE_PATH);
+    private static final UserAPI API = new UserAPI(BASE_PATH) {
+
+        @Override
+        public void createUserLogic(User body) { 
+        }
+
+        @Override
+        public String createUserWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void createUsersWithArrayInputLogic(List<User> body) { 
+        }
+
+        @Override
+        public String createUsersWithArrayInputWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void createUsersWithListInputLogic(List<User> body) { 
+        }
+
+        @Override
+        public String createUsersWithListInputWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void deleteUserLogic(String username) { 
+        }
+
+        @Override
+        public String deleteUserWsLogic(String requestMessage, String username) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<User> getUserByNameLogic(String username) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String getUserByNameWsLogic(String requestMessage, String username) {
+            return "";
+        }
+    
+        @Override
+        public CompletableFuture<String> loginUserLogic(String username, String password) { 
+            return new CompletableFuture<>();
+        }
+
+        @Override
+        public String loginUserWsLogic(String requestMessage, String username, String password) {
+            return "";
+        }
+    
+        @Override
+        public void logoutUserLogic() { 
+        }
+
+        @Override
+        public String logoutUserWsLogic(String requestMessage) {
+            return "";
+        }
+    
+        @Override
+        public void updateUserLogic(String username, User body) { 
+        }
+
+        @Override
+        public String updateUserWsLogic(String requestMessage, String username) {
+            return "";
+        }
+    
+    };
     private static final Javalin SERVER = Javalin.create().start();
     private final HttpClient client = HttpClient.newHttpClient();
     private String uri;
